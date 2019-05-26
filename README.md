@@ -84,7 +84,7 @@
 
 <h1 id="COPYRIGHT">COPYRIGHT</h1>
 
-<p>Copyright (c) 2017-2019 Jaewoong Jang</p>
+<p>Copyright (c) 2016-2019 Jaewoong Jang</p>
 
 <h1 id="LICENSE">LICENSE</h1>
 
