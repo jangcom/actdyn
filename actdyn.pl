@@ -16,8 +16,8 @@ use constant ARRAY => ref [];
 use constant HASH  => ref {};
 
 
-our $VERSION = '2.30';
-our $LAST    = '2019-05-26';
+our $VERSION = '2.31';
+our $LAST    = '2019-05-28';
 our $FIRST   = '2016-12-15';
 
 
@@ -570,14 +570,14 @@ struct linac => {
 
 struct chemical_processing => {
     predef_opt              => '%',
-    is_predef               => '$',
+    is_overwrite            => '$',
     mo99_loss_ratio_at_eop  => '$',
     tc99m_loss_ratio_at_eop => '$',
     time_required           => 'time_frame',
 };
 
 struct tc99m_generator => {
-    is_predef       => '$',
+    is_overwrite    => '$',
     predef_opt      => '%',
     maker           => '$',
     delivery_time   => 'time_frame',
@@ -592,20 +592,20 @@ struct tc99m_generator => {
 };
 
 struct actdyn => {
-    path          => '$',
-    bname         => '$',
-    flag          => 'file_type',
-    ext           => 'file_type',
-    phits         => 'mc_sim',
-    pwm           => 'pointwise_multiplication',
-    rrate         => '$',
-    gp            => 'gnuplot',
-    excel         => 'file_type',
-    nrgs_of_int   => '@',
-    is_yield_disp => '$',
-    tirrs_of_int  => '@',
-    mo99_act_sat  => '$',
-    is_run        => '$',
+    path         => '$',
+    bname        => '$',
+    flag         => 'file_type',
+    ext          => 'file_type',
+    phits        => 'mc_sim',
+    pwm          => 'pointwise_multiplication',
+    rrate        => '$',
+    gp           => 'gnuplot',
+    excel        => 'file_type',
+    nrgs_of_int  => '@',
+    is_calc_disp => '$',
+    tirrs_of_int => '@',
+    mo99_act_sat => '$',
+    is_run       => '$',
 };
 
 struct country => {
@@ -816,7 +816,12 @@ sub parse_argv {
     
     # Parser: Overwrite default run options if requested by the user.
     foreach (@$argv_aref) {
-        # Skip the interactive mode and run on the default mode.
+        # Run on the interactive mode.
+        if (/$cmd_opts{inter}/) {
+            $run_opts_href->{is_inter} = 1;
+        }
+        
+        # Run on the default mode.
         if (/$cmd_opts{dflt}/) {
             $run_opts_href->{is_dflt} = 1;
         }
@@ -988,7 +993,7 @@ sub pause_terminal {
     
     printf(
         "%s%s",
-        $disp->indent,
+        $disp->indent // ' ',
         $opt_str ? $opt_str : 'Press enter to continue...'
     );
     while (<STDIN>) { last }
@@ -1425,10 +1430,9 @@ sub overwrite_param_via_opt {
             "%s:%s",
             $k,
             (
-                $expl_href->{$k} =~ /^[\r\n\f\v ]$/ ? 'space' :
-                $expl_href->{$k} =~ /^\t$/          ? 'tab'   :
-                $expl_href->{$k} =~ /^,$/           ? 'comma' :
-                                                      $expl_href->{$k}
+                $expl_href->{$k} =~ /^[\r\n\f\v ]$/ ? 'Space' :
+                $expl_href->{$k} =~ /^\t$/          ? 'Tab'   :
+                $expl_href->{$k} =~ /^,$/           ? 'Comma' : $expl_href->{$k}
             ),
         );
         
@@ -1563,7 +1567,7 @@ sub overwrite_param_via_val {
 
 
 sub overwrite_param {
-    # """Interactive mode for parameter overwriting"""
+    # """Prompt the interactive mode for parameter overwriting"""
     
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
@@ -1624,7 +1628,8 @@ sub overwrite_param {
                     '<Columnar data separator> ', # Optional str for expl
                 )
             );
-            # Chemical composition of the Mo target
+            
+            # Mo target, material
             $mo_tar->mole_ratio_o_to_mo(
                 overwrite_param_via_opt(
                     $mo_tar->mole_ratio_o_to_mo,
@@ -1633,7 +1638,7 @@ sub overwrite_param {
             );
             assign_symb_to_mo_tar();
             
-            # Mo-100 enrichment level
+            # Mo target, Mo-100 enrichment level
             $mo_tar->is_enri(
                 overwrite_param_via_opt(
                     $mo_tar->is_enri,
@@ -1669,7 +1674,7 @@ sub overwrite_param {
                 overwrite_param_via_val(
                     $linac->op_avg_beam_curr,
                     sprintf(
-                        "Beam current (%s)",
+                        "Average beam current (%s)",
                         $curr->symb,
                     ),
                     1e-1,
@@ -1688,13 +1693,13 @@ sub overwrite_param {
             );
             
             # Mo target processing settings
-            $chem_proc->is_predef(
+            $chem_proc->is_overwrite(
                 overwrite_param_via_opt(
-                    $chem_proc->is_predef,
+                    $chem_proc->is_overwrite,
                     $chem_proc->predef_opt,
                 )
             );
-            if (not $chem_proc->is_predef) {
+            if ($chem_proc->is_overwrite) {
                 $chem_proc->time_required->to(
                     overwrite_param_via_val(
                         $chem_proc->time_required->to,
@@ -1703,16 +1708,34 @@ sub overwrite_param {
                         48,
                     )
                 );
+                $chem_proc->mo99_loss_ratio_at_eop(
+                    overwrite_param_via_val(
+                        $chem_proc->mo99_loss_ratio_at_eop,
+                        "The fraction of Mo-99 activity".
+                        " lost during postirradiation processing",
+                        0.0,
+                        1.0,
+                    )
+                );
+                $chem_proc->tc99m_loss_ratio_at_eop(
+                    overwrite_param_via_val(
+                        $chem_proc->tc99m_loss_ratio_at_eop,
+                        "The fraction of Tc-99m activity".
+                        " lost during postirradiation processing",
+                        0.0,
+                        1.0,
+                    )
+                );
             }
             
             # Tc-99m generator settings
-            $tc99m_gen->is_predef(
+            $tc99m_gen->is_overwrite(
                 overwrite_param_via_opt(
-                    $tc99m_gen->is_predef,
+                    $tc99m_gen->is_overwrite,
                     $tc99m_gen->predef_opt,
                 )
             );
-            if (not $tc99m_gen->is_predef) {
+            if ($tc99m_gen->is_overwrite) {
                 $tc99m_gen->delivery_time->to(
                     overwrite_param_via_val(
                         $tc99m_gen->delivery_time->to,
@@ -1776,7 +1799,7 @@ sub correct_trailing_path_sep {
     foreach (@objs) {
         my $path = $_->path;
         $path =~ s/$/\// if not $path =~ /[\\\/]$/; # No sep
-        $path =~ s/[\\\/]{2,}$/\// if $path =~ /[\\\/]{2,}$/; # Multiple sep
+        $path =~ s/[\\\/]{2,}$/\// if $path =~ /[\\\/]{2,}$/; # Multiple seps
         $_->path($path);
     }
     
@@ -1803,7 +1826,7 @@ sub fix_time_frames {
 
     # Decay time
     # > $t_dec->from is defined and initialized at each $nrg in
-    #   "Yield calculation term (3/3): Those functions of time"
+    #   "Activity calculation term (3/3): Those functions of time"
     $t_dec->to($t_tot->to - $t_irr->to);
     
     # Chemical processing time
@@ -3329,7 +3352,7 @@ sub convert_units {
     }
     
     #
-    # For those calculated in calc_actdyn()
+    # For those calculated in calc_mo99_tc99m_actdyn_data()
     #
     foreach my $_nrg (@{$actdyn->nrgs_of_int}) {
         foreach (
@@ -3396,7 +3419,7 @@ sub read_in_micro_xs {
 }
 
 
-sub calc_actdyn {
+sub calc_mo99_tc99m_actdyn_data {
     # """Calculate Mo-99/Tc-99m activity dynamics data."""
     
     # y/n prompt
@@ -3411,12 +3434,6 @@ sub calc_actdyn {
     
     print " Calculation in progress..." if not $routine->is_verbose;
     print "\n";
-    
-    print $disp->indent."Mo-99 yields are being calculated...\n" if (
-        not $actdyn->pwm->is_show_gross
-        and not $mo99_act_nrg_tirr->is_yield_disp
-        and $routine->is_verbose
-    );
     
     # (1/2) Read in microscopic cross section data.
     read_in_micro_xs();
@@ -3601,7 +3618,7 @@ sub calc_actdyn {
             if (
                 $_nrg == $actdyn->nrgs_of_int->[-1]
                 and $routine->is_verbose
-                and not $mo99_act_nrg_tirr->is_yield_disp
+                and not $mo99_act_nrg_tirr->is_calc_disp
             ) {
                 my $k = 0;
                 @{$routine->rpt_arr} = ();
@@ -3613,7 +3630,7 @@ sub calc_actdyn {
                 $routine->rpt_arr->[$k++] =
                     " To print the Mo-99 activities on the terminal,";
                 $routine->rpt_arr->[$k++] =
-                    " set \$mo99_act_nrg_tirr->is_yield_disp(1)";
+                    " set \$mo99_act_nrg_tirr->is_calc_disp(1)";
                 $routine->rpt_arr->[$k++] = $routine->rpt_arr->[0];
                 
                 for (my $i=0; $i<=$k; $i++) {
@@ -3687,7 +3704,7 @@ sub calc_actdyn {
             if (
                 $t == $t_irr->to
                 and $routine->is_verbose
-                and $mo99_act_nrg_tirr->is_yield_disp
+                and $mo99_act_nrg_tirr->is_calc_disp
             ) {
                 printf(
                     "%s\$mo99->act->irr at %d %s and".
@@ -3703,7 +3720,7 @@ sub calc_actdyn {
                     $mo99->act->irr_arr->[$_nrg][$t],
                     $act->symbol,
                     $linac->op_avg_beam_curr,
-                    $curr->symbol,
+                    $curr->symb,
                 );
             }
             
@@ -6085,10 +6102,10 @@ sub populate_attrs {
     # 'chemical_processing' object
     #
     %{$chem_proc->predef_opt} = (
-        0 => 'Overwrite',
-        1 => 'Predefined $chem_proc attributes',
+        0 => 'Predefined $chem_proc attributes',
+        1 => 'Overwrite',
     );
-    $chem_proc->is_predef(1);
+    $chem_proc->is_overwrite(0);
     $chem_proc->time_required->to(12);
     $chem_proc->mo99_loss_ratio_at_eop(0.2);
     $chem_proc->tc99m_loss_ratio_at_eop($chem_proc->mo99_loss_ratio_at_eop);
@@ -6096,17 +6113,17 @@ sub populate_attrs {
     #
     # 'tc99m_generator' object
     #
+    $tc99m_gen->delivery_time->to(12);
     %{$tc99m_gen->predef_opt} = (
-        0 => 'Overwrite',
-        1 => 'Predefined $tc99m_gen attributes',
+        0 => 'Predefined $tc99m_gen attributes',
+        1 => 'Overwrite',
     );
-    $tc99m_gen->is_predef(1);
+    $tc99m_gen->is_overwrite(0);
     %{$tc99m_gen->elu_discard_opt} = (
         1 => 'Use the first Tc-99m eluate',
         2 => 'Discard',
     );
-    $tc99m_gen->delivery_time->to(12);
-    $tc99m_gen->elu_ord_from(2);
+    $tc99m_gen->elu_ord_from(2); # elu_discard_opt
     $tc99m_gen->elu_eff(0.7);
     $tc99m_gen->elu_itv(24);
     $tc99m_gen->shelf_life(240);
@@ -6122,7 +6139,7 @@ sub populate_attrs {
     $actdyn->pwm->is_chk(1);
     $actdyn->pwm->is_show_gross(0);
     
-    $mo99_act_nrg_tirr->is_yield_disp(1);
+    $mo99_act_nrg_tirr->is_calc_disp(1);
     @{$mo99_act_nrg->tirrs_of_int} = (50, 72, 100, 200, 300, 400);
     
     #
@@ -6261,8 +6278,11 @@ sub actdyn_preproc {
     }
     say $disp->border->dash;
     
-    # Parameter overwriting
-    overwrite_param() unless $run_opts_href->{is_dflt};
+    # Parameter selection
+    printf("%sDefault parameters have been set.\n", $disp->indent)
+        if $run_opts_href->{is_dflt};
+    overwrite_param()
+        if not $run_opts_href->{is_dflt};
     correct_trailing_path_sep(
         $phits,
         $actdyn,
@@ -6280,17 +6300,26 @@ sub actdyn_preproc {
 sub actdyn_main {
     # """actdyn main routine"""
     
+    # Mo-99/Tc-99m activity dynamics calculation
+    calc_mo100_num_dens();
+    calc_mo99_tc99m_actdyn_data();
+    
+    return;
+}
+
+
+sub actdyn_postproc {
+    # """actdyn postprocessor"""
+    
     my $prog_info_href = shift;
     
-    # Calculation routines
-    calc_mo100_num_dens();
-    calc_actdyn();
-    return if not $actdyn->is_run;
-    
-    # Writing routines
+    # Convert the units of calculated quantities;
+    # e.g. Bq --> GBq, g m^-3 --> g cm^-3
     convert_units();
+    
+    # Write the calculation results to data files.
     gen_mo99_tc99m_actdyn_data($prog_info_href);
-    calc_num_of_required_linacs();
+    calc_num_of_required_linacs(); # Reporting file
     
     return;
 }
@@ -6299,48 +6328,57 @@ sub actdyn_main {
 sub actdyn_runner {
     # """actdyn running routine"""
     
-    my %prog_info = (
-        titl       => basename($0, '.pl'),
-        expl       => 'A Mo-99/Tc-99m activity dynamics simulator',
-        vers       => $VERSION,
-        date_last  => $LAST,
-        date_first => $FIRST,
-        auth       => {
-            name => 'Jaewoong Jang',
-            posi => 'PhD student',
-            affi => 'University of Tokyo',
-            mail => 'jangj@korea.ac.kr',
-        },
-    );
-    my %cmd_opts = ( # Command-line opts
-        dflt    => qr/-?-d\b/i,
-        nofm    => qr/-?-nofm\b/i,
-        verbose => qr/-?-verb(?:ose)?\b/i,
-        nopause => qr/-?-nopause\b/i,
-    );
-    my %run_opts = ( # Program run opts
-        is_dflt    => 0,
-        is_nofm    => 0,
-        is_verbose => 0,
-        is_nopause => 0,
-    );
+    if (@ARGV) {
+        my %prog_info = (
+            titl       => basename($0, '.pl'),
+            expl       => 'A Mo-99/Tc-99m activity dynamics simulator',
+            vers       => $VERSION,
+            date_last  => $LAST,
+            date_first => $FIRST,
+            auth       => {
+                name => 'Jaewoong Jang',
+                posi => 'PhD student',
+                affi => 'University of Tokyo',
+                mail => 'jangj@korea.ac.kr',
+            },
+        );
+        my %cmd_opts = ( # Command-line opts
+            inter   => qr/-?-i\b/i,
+            dflt    => qr/-?-d\b/i,
+            nofm    => qr/-?-nofm\b/i,
+            verbose => qr/-?-verb(?:ose)?\b/i,
+            nopause => qr/-?-nopause\b/i,
+        );
+        my %run_opts = ( # Program run opts
+            is_inter   => 0,
+            is_dflt    => 0,
+            is_nofm    => 0,
+            is_verbose => 0,
+            is_nopause => 0,
+        );
+        
+        # ARGV validation and parsing
+        validate_argv(\@ARGV, \%cmd_opts) if @ARGV;
+        parse_argv(\@ARGV, \%cmd_opts, \%run_opts) if @ARGV;
+        
+        # Notification - beginning
+        show_front_matter(\%prog_info, 'prog', 'auth', 'no_trailing_blkline')
+            unless $run_opts{is_nofm};
+        
+        # actdyn routines
+        if ($run_opts{is_inter} or $run_opts{is_dflt}) {
+            actdyn_preproc(\%run_opts);
+            actdyn_main();
+            actdyn_postproc(\%prog_info) if $actdyn->is_run;
+        }
+        
+        # Notification - end
+        show_elapsed_real_time("\n");
+        pause_terminal("Press enter to exit...")
+            unless $run_opts{is_nopause};
+    }
     
-    # ARGV validation and parsing
-    validate_argv(\@ARGV, \%cmd_opts) if @ARGV;
-    parse_argv(\@ARGV, \%cmd_opts, \%run_opts) if @ARGV;
-    
-    # Notification - beginning
-    show_front_matter(\%prog_info, 'prog', 'auth', 'no_trailing_blkline')
-        unless $run_opts{is_nofm};
-    
-    # actdyn routines
-    actdyn_preproc(\%run_opts);
-    actdyn_main(\%prog_info);
-    
-    # Notification - end
-    show_elapsed_real_time("\n");
-    pause_terminal("Press enter to exit...")
-        unless $run_opts{is_nopause};
+    system("perldoc \"$0\"") if not @ARGV;
     
     return;
 }
@@ -6356,18 +6394,36 @@ actdyn - A Mo-99/Tc-99m activity dynamics simulator
 
 =head1 SYNOPSIS
 
-    perl actdyn.pl [-d] [-nofm] [-verbose] [-nopause]
+    perl actdyn.pl [-i|-d] [-nofm] [-verbose] [-nopause]
 
 =head1 DESCRIPTION
 
-    Running on interactive mode, actdyn calculates and generates data for
-    the activity dynamics of Mo-99/Tc-99m produced via the Mo-100(g,n)Mo-99
-    reaction.
+    actdyn calculates and generates data of the activity dynamics of
+    Mo-99/Tc-99m produced via the Mo-100(g,n)Mo-99 reaction.
+    Parameters that can be specified via the interactive mode include:
+        - Fluence data: directory name, filename rules, and beam energy range
+        - Cross section data
+        - Mo target materials (options: metallic Mo, MoO2, MoO3)
+        - Mo-100 mass fraction
+        - The beam energy for which Mo-99/Tc-99m activity dynamics data
+          will be calculated
+        - Average beam current
+        - Time frames: time of irradiation, time of postirradiation processing,
+          and time of Tc-99m generator delivery
+        - The fractions of Mo-99 and Tc-99m activities
+          lost during postirradiation processing
+        - Tc-99m elution conditions: elution efficiency, whether to discard
+          the first eluate, elution intervals, and Tc-99m generator shelf-life
+    The generated data files (.dat) follow the gnuplot data structure
+    (data block and dataset).
 
 =head1 OPTIONS
 
+    -i
+        Run on the interactive mode.
+
     -d
-        Skip the interactive mode and run on the default mode.
+        Run on the default mode.
 
     -nofm
         The front matter will not be displayed at the beginning of the program.
@@ -6394,8 +6450,8 @@ actdyn - A Mo-99/Tc-99m activity dynamics simulator
         which are necessary to run actdyn.
         If you already have the license, please obtain T-Track files
         with axis=eng used, and name the tally files in sequential order.
-        Corresponding modifications should be made on the directory tree
-        via the interactive mode.
+        You can specify the naming rules of the fluence files and their
+        directory via the interactive input.
 
 =head1 SEE ALSO
 
