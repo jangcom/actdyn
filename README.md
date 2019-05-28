@@ -31,18 +31,36 @@
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-<pre><code>    perl actdyn.pl [-d] [-nofm] [-verbose] [-nopause]</code></pre>
+<pre><code>    perl actdyn.pl [-i|-d] [-nofm] [-verbose] [-nopause]</code></pre>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-<pre><code>    Running on interactive mode, actdyn calculates and generates data for
-    the activity dynamics of Mo-99/Tc-99m produced via the Mo-100(g,n)Mo-99
-    reaction.</code></pre>
+<pre><code>    actdyn calculates and generates data of the activity dynamics of
+    Mo-99/Tc-99m produced via the Mo-100(g,n)Mo-99 reaction.
+    Parameters that can be specified via the interactive mode include:
+        - Fluence data: directory name, filename rules, and beam energy range
+        - Cross section data
+        - Mo target materials (options: metallic Mo, MoO2, MoO3)
+        - Mo-100 mass fraction
+        - The beam energy for which Mo-99/Tc-99m activity dynamics data
+          will be calculated
+        - Average beam current
+        - Time frames: time of irradiation, time of postirradiation processing,
+          and time of Tc-99m generator delivery
+        - The fractions of Mo-99 and Tc-99m activities
+          lost during postirradiation processing
+        - Tc-99m elution conditions: elution efficiency, whether to discard
+          the first eluate, elution intervals, and Tc-99m generator shelf-life
+    The generated data files (.dat) follow the gnuplot data structure
+    (data block and dataset).</code></pre>
 
 <h1 id="OPTIONS">OPTIONS</h1>
 
-<pre><code>    -d
-        Skip the interactive mode and run on the default mode.
+<pre><code>    -i
+        Run on the interactive mode.
+
+    -d
+        Run on the default mode.
 
     -nofm
         The front matter will not be displayed at the beginning of the program.
@@ -69,8 +87,8 @@
         which are necessary to run actdyn.
         If you already have the license, please obtain T-Track files
         with axis=eng used, and name the tally files in sequential order.
-        Corresponding modifications should be made on the directory tree
-        via the interactive mode.</code></pre>
+        You can specify the naming rules of the fluence files and their
+        directory via the interactive input.</code></pre>
 
 <h1 id="SEE-ALSO">SEE ALSO</h1>
 
