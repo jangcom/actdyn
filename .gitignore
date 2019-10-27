@@ -8,7 +8,7 @@ actdyn_baker.bat
 updates.txt
 removed.txt
 
-# actdyn aux files
+# actdyn aux and result files
 figs/
 notes/
 olds/
