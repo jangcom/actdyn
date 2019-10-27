@@ -16,20 +16,20 @@ use constant ARRAY => ref [];
 use constant HASH  => ref {};
 
 
-our $VERSION = '2.31';
-our $LAST    = '2019-05-28';
+our $VERSION = '2.32';
+our $LAST    = '2019-10-27';
 our $FIRST   = '2016-12-15';
 
 
 #----------------------------------My::Toolset----------------------------------
 sub show_front_matter {
     # """Display the front matter."""
-    
+
     my $prog_info_href = shift;
     my $sub_name = join('::', (caller(0))[0, 3]);
     croak "The 1st arg of [$sub_name] must be a hash ref!"
         unless ref $prog_info_href eq HASH;
-    
+
     # Subroutine optional arguments
     my(
         $is_prog,
@@ -53,7 +53,7 @@ sub show_front_matter {
         $lead_symb              = $_ if /^[^a-zA-Z0-9]$/;
     }
     my $newline = $is_no_newline ? "" : "\n";
-    
+
     #
     # Fill in the front matter array.
     #
@@ -64,12 +64,12 @@ sub show_front_matter {
         '+' => $lead_symb.('+' x $border_len).$newline,
         '*' => $lead_symb.('*' x $border_len).$newline,
     );
-    
+
     # Top rule
     if ($is_prog or $is_auth) {
         $fm[$k++] = $borders{'+'};
     }
-    
+
     # Program info, except the usage
     if ($is_prog) {
         $fm[$k++] = sprintf(
@@ -94,7 +94,7 @@ sub show_front_matter {
             $newline,
         );
     }
-    
+
     # Timestamp
     if ($is_timestamp) {
         my %datetimes = construct_timestamps('-');
@@ -105,7 +105,7 @@ sub show_front_matter {
             $newline,
         );
     }
-    
+
     # Author info
     if ($is_auth) {
         $fm[$k++] = $lead_symb.$newline if $is_prog;
@@ -114,25 +114,30 @@ sub show_front_matter {
             ($lead_symb ? $lead_symb.' ' : $lead_symb),
             $prog_info_href->{auth}{$_},
             $newline,
-        ) for qw(name posi affi mail);
+        ) for (
+            'name',
+#            'posi',
+#            'affi',
+            'mail',
+        );
     }
-    
+
     # Bottom rule
     if ($is_prog or $is_auth) {
         $fm[$k++] = $borders{'+'};
     }
-    
+
     # Program usage: Leading symbols are not used.
     if ($is_usage) {
         $fm[$k++] = $newline if $is_prog or $is_auth;
         $fm[$k++] = $prog_info_href->{usage};
     }
-    
+
     # Feed a blank line at the end of the front matter.
     if (not $is_no_trailing_blkline) {
         $fm[$k++] = $newline;
     }
-    
+
     #
     # Print the front matter.
     #
@@ -148,7 +153,7 @@ sub show_front_matter {
 
 sub validate_argv {
     # """Validate @ARGV against %cmd_opts."""
-    
+
     my $argv_aref     = shift;
     my $cmd_opts_href = shift;
     my $sub_name = join('::', (caller(0))[0, 3]);
@@ -156,12 +161,12 @@ sub validate_argv {
         unless ref $argv_aref eq ARRAY;
     croak "The 2nd arg of [$sub_name] must be a hash ref!"
         unless ref $cmd_opts_href eq HASH;
-    
+
     # For yn prompts
     my $the_prog = (caller(0))[1];
     my $yn;
     my $yn_msg = "    | Want to see the usage of $the_prog? [y/n]> ";
-    
+
     #
     # Terminate the program if the number of required arguments passed
     # is not sufficient.
@@ -184,11 +189,11 @@ sub validate_argv {
             }
         }
     }
-    
+
     #
     # Count the number of correctly passed command-line options.
     #
-    
+
     # Non-fnames
     my $num_corr_cmd_opts = 0;
     foreach my $arg (@$argv_aref) {
@@ -199,12 +204,12 @@ sub validate_argv {
             }
         }
     }
-    
+
     # Fname-likes
     my $num_corr_fnames = 0;
     $num_corr_fnames = grep $_ !~ /^-/, @$argv_aref;
     $num_corr_cmd_opts += $num_corr_fnames;
-    
+
     # Warn if "no" correct command-line options have been passed.
     if (not $num_corr_cmd_opts) {
         print "\n    | None of the command-line options was correct.\n";
@@ -215,16 +220,16 @@ sub validate_argv {
             print $yn_msg;
         }
     }
-    
+
     return;
 }
 
 
 sub show_elapsed_real_time {
     # """Show the elapsed real time."""
-    
+
     my @opts = @_ if @_;
-    
+
     # Parse optional arguments.
     my $is_return_copy = 0;
     my @del; # Garbage can
@@ -238,13 +243,13 @@ sub show_elapsed_real_time {
     }
     my %dels = map { $_ => 1 } @del;
     @opts = grep !$dels{$_}, @opts;
-    
+
     # Optional strings printing
     print for @opts;
-    
+
     # Elapsed real time printing
     my $elapsed_real_time = sprintf("Elapsed real time: [%s s]", time - $^T);
-    
+
     # Return values
     if ($is_return_copy) {
         return $elapsed_real_time;
@@ -272,7 +277,7 @@ struct file_type => {
     tmp  => '$',
     xls  => '$',
     xlsx => '$',
-    
+
     # PHITS
     inp      => '$',
     out      => '$',
@@ -317,10 +322,10 @@ struct symbol => {
     question       => '$',
     space          => '$',
     tab            => '$',
-    
+
     # For on-screen warnings
     warning => '$',
-    
+
     # For the 'alignment' class
     len => '$', # Not only the 'alignment' class
     bef => '$',
@@ -381,7 +386,7 @@ struct unit => {
     sel          => '$',
     name         => '$',
     symbol       => '$', # e.g. 'A' for ampere and 'Bq' for becquerel
-    symbol_recip => '$', # e.g. 'A^-1' 
+    symbol_recip => '$', # e.g. 'A^-1'
     symb         => '$', # e.g. 'mA' for milliampere and 'MBq' for megabecquerel
     symb_recip   => '$', # e.g. 'mA^-1'
     power_of_10  => '$', # e.g. '-3' for milli and '6' for mega
@@ -394,7 +399,7 @@ struct time_frame => {
     to     => '$',
     slot_1 => '$',
     slot_2 => '$',
-    
+
     # For Mo-99/Tc-99m demand
     yearly  => '$',
     monthly => '$',
@@ -463,12 +468,12 @@ struct nuclide => {
     is_enri                => '$',
     enri                   => '$',
     of_int                 => '@', # <-$mo_tar; for different gp datasets
-    
+
     # For varying enrichment levels
     enri_min => '$',
     enri_max => '$',
     enri_var => '@',
-    
+
     # For radioactive ones
     half_life_phy  => '$', # Expressed in hour
     dec_const      => '$',
@@ -480,15 +485,15 @@ struct nuclide => {
     positron_dec_2 => 'decay',
     gamma_dec1     => 'decay',
     gamma_dec2     => 'decay',
-    
+
     # Tc-99m average dose
     avg_dose => '$',
-    
+
     # For target materials
     therm_cond => '$',
     melt_point => '$',
     boil_point => '$',
-    
+
     # Target postprocessing
     processing_time      => '$',
     processing_loss_rate => '$',
@@ -500,7 +505,7 @@ struct mc_sim => {
     flag  => 'file_type',
     ext   => 'file_type',
     flues => '@',
-    
+
     # To be shared with other classes: fname designators
     inp => '$',
     out => '$',
@@ -532,11 +537,11 @@ struct gnuplot => {
     ext             => 'file_type',
     missing_dat_str => '$', # String denoting missing data
     cmd             => '$', # Terminal command to run gnuplot
-    
+
     dat => '$',
     tmp => '$',
     inp => '$',
-    
+
     # $mark_time_frame_of
     non => '$',
     eoi => '$',
@@ -563,7 +568,7 @@ struct linac => {
     op_avg_beam_curr => '$',
     num_linacs       => '$',
     list             => '%',
-    
+
     # For calculation of Tc-99m supply and demand
     tc99m_supply => 'time_frame',
 };
@@ -806,43 +811,43 @@ my $jpn = country->new(
 
 sub parse_argv {
     # """@ARGV parser"""
-    
+
     my(
         $argv_aref,
         $cmd_opts_href,
         $run_opts_href,
     ) = @_;
     my %cmd_opts = %$cmd_opts_href; # For regexes
-    
+
     # Parser: Overwrite default run options if requested by the user.
     foreach (@$argv_aref) {
         # Run on the interactive mode.
         if (/$cmd_opts{inter}/) {
             $run_opts_href->{is_inter} = 1;
         }
-        
+
         # Run on the default mode.
         if (/$cmd_opts{dflt}/) {
             $run_opts_href->{is_dflt} = 1;
         }
-        
+
         # The front matter won't be displayed at the beginning of the program.
         if (/$cmd_opts{nofm}/) {
             $run_opts_href->{is_nofm} = 1;
         }
-        
+
         # Reporting levels
         if (/$cmd_opts{verbose}/) {
             $run_opts_href->{is_verbose} = 1;
         }
-        
+
         # The shell won't be paused at the end of the program.
         if (/$cmd_opts{nopause}/) {
             $run_opts_href->{is_nopause} = 1;
         }
     }
     $routine->is_verbose($run_opts_href->{is_verbose});
-    
+
     return;
 }
 
@@ -850,7 +855,7 @@ sub parse_argv {
 sub calc_alignment_symb_len {
     # """Using a string, its reference string, and an alignment option,
     # calculate the number of characters required for the string alignment."""
-    
+
     # $_[0]: The string to be aligned
     # $_[1]: The length of a string for which the number of alignment characters
     #        for $_[0] will be calculated.
@@ -858,7 +863,7 @@ sub calc_alignment_symb_len {
     my $len_str_of_int = length shift;
     my $len_ref_str    = shift; # To be a number
     my $align_meth     = shift;
-    
+
     #
     # [0] Ragged
     #
@@ -873,7 +878,7 @@ sub calc_alignment_symb_len {
     if ($align_meth =~ /0|rag/i) {
         # Initialization: depends on $align_meth
         $alignment->symb->len(0);
-        
+
         for (my $i=1; $i<=($len_ref_str - $len_str_of_int); $i++) {
             # The one at the last iteration will be the return value.
             $alignment->symb->len(
@@ -881,7 +886,7 @@ sub calc_alignment_symb_len {
             );
         }
     }
-    
+
     #
     # [1] Centered
     #
@@ -904,7 +909,7 @@ sub calc_alignment_symb_len {
     elsif ($align_meth =~ /1|center/i) {
         # Initialization: depends on $align_meth
         $alignment->symb->len(1);
-        
+
         for (
             my $i=1;
             $i<=(($len_ref_str - $len_str_of_int- 2) / 2);
@@ -916,16 +921,16 @@ sub calc_alignment_symb_len {
             );
         }
     }
-    
+
     return;
 }
 
 
 sub create_timestamp {
     # """Create a timestamp using the DateTime module."""
-    
+
     $disp->dt(DateTime->now(time_zone => 'local')); # 'local' required
-    
+
     # Some methods of the DateTime class
     #
     # ymd(<optional_separator>): 2017-01-02 (dash is the default sep)
@@ -942,7 +947,7 @@ sub create_timestamp {
             $disp->dt->hms,
         )
     );
-    
+
     $disp->timestamp->where_month_is_named(
         sprintf(
             "%s %s, %s (%s.) %s",
@@ -953,14 +958,14 @@ sub create_timestamp {
             $disp->dt->hms,
         )
     );
-    
+
     return;
 }
 
 
 sub show_routine_header {
     # """Show the name of the subroutine."""
-    
+
     my $the_caller_routine = shift;
     calc_alignment_symb_len(
         $the_caller_routine,
@@ -970,7 +975,7 @@ sub show_routine_header {
     $the_caller_routine =
         ($alignment->symb->bef x $alignment->symb->len).
         $the_caller_routine;
-    
+
     my $k = 0;
     @{$routine->header} = ();
     $routine->header->[$k++] = $disp->border->equals;
@@ -978,26 +983,26 @@ sub show_routine_header {
     $routine->header->[$k++] = $the_caller_routine;
     $routine->header->[$k++] = "";
     $routine->header->[$k++] = $disp->border->equals;
-    
+
     print "\n";
     say for @{$routine->header};
-    
+
     return;
 }
 
 
 sub pause_terminal {
     # """Pause the terminal until an input is given."""
-    
+
     my $opt_str = shift;
-    
+
     printf(
         "%s%s",
         $disp->indent // ' ',
         $opt_str ? $opt_str : 'Press enter to continue...'
     );
     while (<STDIN>) { last }
-    
+
     return;
 }
 
@@ -1005,7 +1010,7 @@ sub pause_terminal {
 sub lengthen_cmt_border {
     # """Lengthen the comment border with respect to
     # the total width of its columnar header."""
-    
+
     # $_[0]: An object to which the data_struct class is nested
     # $_[1]: aref; indices of nonheader
     # $_[2]: aref; indices of borders
@@ -1016,19 +1021,19 @@ sub lengthen_cmt_border {
     my @border_indices    = @{$_[2]};
     my $cmt_symb          = $_[3];
     my $border_symb       = $_[4];
-    
+
     # Calculate the new length of the border.
     $obj_having_header->col->header_border_len(0);
     for (my $i=0; $i<=$#{$obj_having_header->col->header}; $i++) {
         next if grep { $i == $_ } @nonheader_indices;
-        
+
         $obj_having_header->col->header_border_len(
             $obj_having_header->col->header_border_len
             + length($obj_having_header->col->header->[$i])
             + length($obj_having_header->col->header_sep)
         );
     }
-    
+
     # Lengthen and renew the borders.
     foreach (@border_indices) {
         $obj_having_header->col->header->[$_] = sprintf(
@@ -1037,27 +1042,27 @@ sub lengthen_cmt_border {
             $border_symb x $obj_having_header->col->header_border_len
         );
     }
-    
+
     return;
 }
 
 
 sub notify_file_gen {
     say $disp->indent."[$_] generated." for grep { -e } @_;
-    
+
     return;
 }
 
 
 sub calc_vol_and_mass {
     # """Calculate the volume and mass of a material."""
-    
+
     my $obj_embracing_geom = shift;
-    
+
     #
     # Calculate the volume of the material.
     #
-    
+
     # Shape [0]
     # > Right circular cylinder
     if ($obj_embracing_geom->geom->shape == 0) {
@@ -1067,7 +1072,7 @@ sub calc_vol_and_mass {
             * $obj_embracing_geom->geom->hgt
         );
     }
-    
+
     # Shape [1]
     # > Conical frustum
     elsif ($obj_embracing_geom->geom->shape == 1) {
@@ -1080,10 +1085,10 @@ sub calc_vol_and_mass {
             ) * $obj_embracing_geom->geom->hgt
         );
     }
-    
+
     # Unidentified shape
     else { printf("%sShape unidentified.\n", $disp->indent) }
-    
+
     #
     # Calculate the mass of the material using the volume calculated
     # above and its predefined mass density.
@@ -1092,39 +1097,39 @@ sub calc_vol_and_mass {
         $obj_embracing_geom->vol
         * $obj_embracing_geom->mass_dens
     );
-    
+
     return;
 }
 
 
 sub assign_symb_to_mo_tar {
     # """Assign a symbol to a molybdenum target."""
-    
+
     $mo_tar->symb(
         $mo_tar->mole_ratio_o_to_mo_opt->{$mo_tar->mole_ratio_o_to_mo}
     );
-    
+
     return;
 }
 
 
 sub commify {
     # """Commify a number."""
-    
+
     my ($sign, $int, $dec) = ($_[0] =~ /^([+-]?)([0-9]*)(.*)/);
     my $commified = (
         reverse scalar join ',',
             unpack '(A3)*',
                 scalar reverse $int
     );
-    
+
     return $sign.$commified.$dec;
 }
 
 
 sub gp_to_csv {
     # """Convert a generated gnuplot data file to a CSV file."""
-    
+
     # $_[0]: Basename of a gnuplot data file
     # $_[1]: Flag to be added to the CSV fname
     # $_[2]: Number of gnuplot datasets (dataset sep: \n\n)
@@ -1140,7 +1145,7 @@ sub gp_to_csv {
         $idx_y_axes_href,
     ) = @_;
     my @idx_y_axes = @{$idx_y_axes_href};
-    
+
     # Define the fnames of gp data and CSV.
     my $gp_dat_fname = sprintf(
         "%s.%s",
@@ -1154,7 +1159,7 @@ sub gp_to_csv {
         $csv_flag,
         $csv->ext,
     );
-    
+
     # Nested arefs for columnar data
     # > Col 1: x-axis
     # > Col 2 onward: y-axis data
@@ -1164,11 +1169,11 @@ sub gp_to_csv {
     for (my $i=1; $i<=$num_of_y_axes; $i++) {
         $csv_col[$i] = [];
     }
-    
+
     open my $gp_dat_fh, '<', $gp_dat_fname;
     open my $csv_fh, '>:encoding(UTF-8)', $csv_fname;
     select($csv_fh);
-    
+
     # Index controls
     my $x_axis_ctrl = 0;
     my $col_count   = 0;
@@ -1177,14 +1182,14 @@ sub gp_to_csv {
     my $idx_for_next_dataset = 1;
     my @gp_header; # gp data columnar header
     my @gp_row;    # gp data row
-    
+
     # Read in the gnuplot data file.
     foreach (<$gp_dat_fh>) {
         # Columnar header
         # > Split and modify the columnar header, and write to the CSV file.
         # > Placed here to write only to the first row of the CSV file
         my $gp_cmt_symb = $gp->cmt_symb;
-        
+
         # The pair of columnar header and data separators:
         # $gp->col->header_sep and $gp->col->content_sep
         # ( | )                and ( ) <- Multiple
@@ -1193,7 +1198,7 @@ sub gp_to_csv {
         @gp_header = split /\|/ if /(?:[a-z]|\))+ [\s]*\|[\s]* [a-z]+/ix;
         @gp_header = split /\t/ if /(?:[a-z]|\))+      \t      [a-z]+/ix;
         @gp_header = split /,/  if /(?:[a-z]|\))+      ,       [a-z]+/ix;
-        
+
         # Modify and write the columnar header.
         if (/(?:[a-z]|\))+ (?:[\s]*\|[\s]* | \t | ,) [a-z]+/ix) {
             # Remove the comment symbol, and
@@ -1203,7 +1208,7 @@ sub gp_to_csv {
                 s/^[\s]+//; # When $gp->col->content_sep == '|'
                 s/[\s]+$//; # When $gp->col->content_sep == '|'
             }
-            
+
             # x-axis header
             if ($x_axis_ctrl == 0) { # $x_axis_ctrl: To write only once
                 printf(
@@ -1215,7 +1220,7 @@ sub gp_to_csv {
                 );
             }
             $x_axis_ctrl++;
-            
+
             # y-axis header
             foreach my $idx_y_axis (@idx_y_axes) {
                 $col_count++; # Not to insert a comma following the last header
@@ -1225,18 +1230,18 @@ sub gp_to_csv {
                     $gp_header[$idx_y_axis],
                     $csv->quoted,
                 );
-                
+
                 # Insert a comma following a header (except the last).
                 print $csv->sep if $col_count != $num_of_y_axes;
             }
-            
+
             # Line break following the last column header
             print "\n" if $col_count == $num_of_y_axes;
         }
-        
+
         # Skip a comment line.
         next if /^#/;
-        
+
         # regex: A blank line; two such blank lines function as
         # a separator of gnuplot datasets
         if (/^$/) {
@@ -1244,16 +1249,16 @@ sub gp_to_csv {
             $idx_row = 0;   # Initialize the first index of a nested array
             next;           # Not to perform $idx_row++ in the last row
         }
-        
+
         # Split and store the columnar data into @gp_row.
         my $gp_col_content_sep = $gp->col->content_sep;
         @gp_row = split /$gp_col_content_sep+/;
-        
+
         # x-axis data
         if ($idx_dataset == 0) {
             $csv_col[0][$idx_row] = $gp_row[$idx_x_axis];
         }
-        
+
         # y-axis data 1, 2, 3
         if ($idx_dataset == 0) {
             my $j = (($#idx_y_axes + 1) * 0) + 1; # ((2 + 1) * 0) + 1 = 1
@@ -1262,7 +1267,7 @@ sub gp_to_csv {
                 $j++; # So that $j = 1->2->3(->4; but 4 is unused)
             }
         }
-        
+
         # y-axis data 4, 5, 6
         # Perform only if the number of dataset is >= 2.
         # > $idx_dataset is 2 because of the "\n\n".
@@ -1273,7 +1278,7 @@ sub gp_to_csv {
                 $j++; # So that $j = 4->5->6(->7; but 4 is unused)
             }
         }
-        
+
         # y-axis data 7, 8, 9
         # > Perform only if the number of dataset is >= 3.
         # > iPlots allows up to 10 columns, and the total
@@ -1286,16 +1291,16 @@ sub gp_to_csv {
                 $j++; # So that $j = 7->8->9(->10; but 10 is unused)
             }
         }
-        
+
         # Increment the gnuplot data row index.
         $idx_row++;
     }
     close $gp_dat_fh;
-    
+
     #
     # Write the data columns to the CSV file.
     #
-    
+
     # -1: because $idx_row++ increases one more idx
     for (my $j=0; $j<=($idx_row - 1); $j++) {
         # Write the first and last data rows, and
@@ -1308,11 +1313,11 @@ sub gp_to_csv {
             for (my $i=0; $i<=$num_of_y_axes; $i++) {
                 # # Limit of iPlots: Up to 3 decimal places
                 printf "%.3e", $csv_col[$i][$j];
-                
+
                 # Insert a comma separator except the last item.
                 printf $csv->sep unless $i == $num_of_y_axes;
             }
-            
+
             # Insert a newline character following the end of
             # a row of the CSV data except the last one.
             print "\n" unless $j == $idx_row - 1;
@@ -1320,7 +1325,7 @@ sub gp_to_csv {
     }
     select(STDOUT);
     close $csv_fh;
-    
+
     # Notify CSV generation.
     printf(
         "%sVia %s,",
@@ -1328,14 +1333,14 @@ sub gp_to_csv {
         (caller(0))[3],
     );
     notify_file_gen($csv_fname);
-    
+
     return;
 }
 
 
 sub define_fnames_for_actdyn_obj {
     # """Define fnames for actdyn objects."""
-    
+
     my %objs = (
         mo99_act_nrg_tirr => {
             obj   => $mo99_act_nrg_tirr,
@@ -1362,14 +1367,14 @@ sub define_fnames_for_actdyn_obj {
             ),
         },
     );
-    
+
     foreach my $k (keys %objs) {
         # Redirection
         my $obj   = $objs{$k}{obj};
-        
+
         # bname
         $obj->bname($objs{$k}{bname});
-        
+
         # gnuplot files
         $obj->gp->dat(
             $actdyn->path.
@@ -1389,7 +1394,7 @@ sub define_fnames_for_actdyn_obj {
             '.'.
             $gp->ext->inp
         );
-        
+
         # Excel files
         $obj->excel->xls(
             $actdyn->path.
@@ -1404,14 +1409,14 @@ sub define_fnames_for_actdyn_obj {
             $excel->ext->xlsx
         );
     }
-    
+
     return;
 }
 
 
 sub overwrite_param_via_opt {
     # """Parameter overwriting via predefined options."""
-    
+
     # $_[0]: The parameter to be overwritten
     # $_[1]: href explaining available options for $_[0]
     my(
@@ -1419,8 +1424,8 @@ sub overwrite_param_via_opt {
         $expl_href,
         $expl_str,
     ) = @_;
-    my @sorted_keys = sort keys %$expl_href; 
-    
+    my @sorted_keys = sort keys %$expl_href;
+
     # Show the available options.
     print $disp->indent."[";
     print $expl_str if $expl_str; # Optional
@@ -1435,40 +1440,40 @@ sub overwrite_param_via_opt {
                 $expl_href->{$k} =~ /^,$/           ? 'Comma' : $expl_href->{$k}
             ),
         );
-        
+
         # Mark the current value.
         printf(" (%s)", $dflt->mark) if (
             $k eq $curr_val
             or $expl_href->{$k} eq $curr_val
         );
-        
+
         # Insert a separator next to an item except the last one.
         print ", " unless $k eq $sorted_keys[-1];
     }
     print "] ";
-    
+
     # Overwrite the parameter in question.
     chomp(my $new_val = <STDIN>);
-    
+
     # If the input falls within the available options, return that input,
     # which will then overwrite the parameter in question.
     # Otherwise, return the existing value.
     my $is_within = grep { /$new_val/ } @sorted_keys;
     my $the_return = $is_within ? $new_val : $curr_val;
-    
+
     printf(
         "%sNow: %s\n",
         $disp->indent,
         $the_return,
     ) if $curr_val ne $the_return;
-    
+
     return $the_return;
 }
 
 
 sub overwrite_param_via_val {
     # """Parameter overwriting via values."""
-    
+
     # $_[0]: The parameter to be overwritten
     # $_[1]: A string explaining what $_[0] means
     # $_[2]: Minimum allowed value of $_[0]
@@ -1482,7 +1487,7 @@ sub overwrite_param_via_val {
     my $is_arr = ref $curr_val eq ARRAY ? 1 : 0;
     my $is_min = $min_allowed_val ? 1 : 0;
     my $is_max = $max_allowed_val ? 1 : 0;
-    
+
     if ($is_arr) {
         printf(
             "%s[%s (%s: %s..%s)] ",
@@ -1493,7 +1498,7 @@ sub overwrite_param_via_val {
             $curr_val->[-1],
         );
     }
-    
+
     else {
         if ($is_min or $is_max) {
             # The decimal separator involved
@@ -1508,7 +1513,7 @@ sub overwrite_param_via_val {
                     $curr_val,
                 );
             }
-            
+
             # No decimal separator
             else {
                 printf(
@@ -1522,7 +1527,7 @@ sub overwrite_param_via_val {
                 );
             }
         }
-        
+
         else {
             printf(
                 "%s[%s (%s: %s)] ",
@@ -1533,12 +1538,12 @@ sub overwrite_param_via_val {
             );
         }
     }
-    
+
     # Overwrite the parameter in question.
     chomp(my $new_val = <STDIN>);
     return $curr_val if $new_val =~ /^$/;
     my $the_return;
-    
+
     if ($is_arr) {
         $the_return = [eval($new_val)];
     }
@@ -1554,24 +1559,24 @@ sub overwrite_param_via_val {
         # String
         $the_return = $new_val if (not $is_min and not $is_max);
     }
-    
+
     printf(
         "%s[%s] is now: %s\n",
         $disp->indent,
         $curr_val_expl,
         $is_arr ? "@$the_return" : $the_return,
     ) if $curr_val ne $the_return;
-    
+
     return $the_return;
 }
 
 
 sub overwrite_param {
     # """Prompt the interactive mode for parameter overwriting"""
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     # Prompt the user to (y/n)
     my $yn_msg = $disp->indent."Overwrite simulation parameters? [y/n]> ";
     print $yn_msg;
@@ -1605,7 +1610,7 @@ sub overwrite_param {
                     ),
                 )
             );
-            
+
             # xs data
             $xs->inp(
                 overwrite_param_via_val(
@@ -1613,7 +1618,7 @@ sub overwrite_param {
                     "Microscopic cross section file",
                 )
             );
-            
+
             # Output
             $actdyn->path(
                 overwrite_param_via_val(
@@ -1628,7 +1633,7 @@ sub overwrite_param {
                     '<Columnar data separator> ', # Optional str for expl
                 )
             );
-            
+
             # Mo target, material
             $mo_tar->mole_ratio_o_to_mo(
                 overwrite_param_via_opt(
@@ -1637,7 +1642,7 @@ sub overwrite_param {
                 )
             );
             assign_symb_to_mo_tar();
-            
+
             # Mo target, Mo-100 enrichment level
             $mo_tar->is_enri(
                 overwrite_param_via_opt(
@@ -1655,7 +1660,7 @@ sub overwrite_param {
                     )
                 );
             }
-            
+
             # Beam energy of interest for activity dynamics
             $linac->op_nrg(
                 overwrite_param_via_val(
@@ -1668,7 +1673,7 @@ sub overwrite_param {
                     $actdyn->nrgs_of_int->[-1],
                 )
             );
-            
+
             # Beam current of interest
             $linac->op_avg_beam_curr(
                 overwrite_param_via_val(
@@ -1681,7 +1686,7 @@ sub overwrite_param {
                     1e+3,
                 )
             );
-            
+
             # End of irradiation
             $t_irr->to(
                 overwrite_param_via_val(
@@ -1691,7 +1696,7 @@ sub overwrite_param {
                     $t_tot->to,
                 )
             );
-            
+
             # Mo target processing settings
             $chem_proc->is_overwrite(
                 overwrite_param_via_opt(
@@ -1727,7 +1732,7 @@ sub overwrite_param {
                     )
                 );
             }
-            
+
             # Tc-99m generator settings
             $tc99m_gen->is_overwrite(
                 overwrite_param_via_opt(
@@ -1775,7 +1780,7 @@ sub overwrite_param {
                     )
                 );
             }
-            
+
             print $disp->indent."Overwriting completed.\n"
                 if $routine->is_verbose;
         }
@@ -1783,26 +1788,26 @@ sub overwrite_param {
         print $yn_msg;
     }
     say $disp->border->dash;
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub correct_trailing_path_sep {
     # """Correct the trailing path separator."""
-    
+
     my @objs = @_;
-    
+
     foreach (@objs) {
         my $path = $_->path;
         $path =~ s/$/\// if not $path =~ /[\\\/]$/; # No sep
         $path =~ s/[\\\/]{2,}$/\// if $path =~ /[\\\/]{2,}$/; # Multiple seps
         $_->path($path);
     }
-    
+
     return;
 }
 
@@ -1810,10 +1815,10 @@ sub correct_trailing_path_sep {
 sub fix_time_frames {
     # """Fix the time frames dependent on the end of irradiation,
     # which could be overwritten in overwrite_param()."""
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     # > $t_irr->to, which contains the end of irradiation (EOI),
     #   could be overwritten in overwrite_param().
     #   As the subsequent time frames have all been set based on the EOI,
@@ -1828,15 +1833,15 @@ sub fix_time_frames {
     # > $t_dec->from is defined and initialized at each $nrg in
     #   "Activity calculation term (3/3): Those functions of time"
     $t_dec->to($t_tot->to - $t_irr->to);
-    
+
     # Chemical processing time
-    $t_pro->from($t_irr->to); 
+    $t_pro->from($t_irr->to);
     $t_pro->to($t_pro->from + $chem_proc->time_required->to);
-    
+
     # Tc-99m generator delivery time
     $t_del->from($t_pro->to);
     $t_del->to($t_del->from + $tc99m_gen->delivery_time->to);
-    
+
     if ($routine->is_verbose) {
         my $k = 0;
         @{$routine->rpt_arr} = ();
@@ -1879,7 +1884,7 @@ sub fix_time_frames {
             $tc99m_gen->delivery_time->to, $time->symb,
         );
         $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -1888,10 +1893,10 @@ sub fix_time_frames {
             );
         }
     }
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
@@ -1899,17 +1904,17 @@ sub fix_time_frames {
 sub fix_max_ord_of_tc99m_elution {
     # """Fix the maximum ordinal number of Tc-99m elution,
     # which could be overwritten in overwrite_param()."""
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     # Fix the maximum ordinal number of Tc-99m elution.
     $tc99m_gen->elu_ord_to(
         # e.g. 240 / 24 = 10 + 1 = 11
         floor( $tc99m_gen->shelf_life / $tc99m_gen->elu_itv )
         + 1
     );
-    
+
     # Total number of elutions
     # (the real elution count is given in $tc99m_gen->elu_ord_count)
     # The +1 counts (compensates) the first elution ordinal
@@ -1926,18 +1931,18 @@ sub fix_max_ord_of_tc99m_elution {
     if (($t_del->to + $tc99m_gen->shelf_life) > $t_tot->to) {
         # The number of hours in excess
         $diff = ($t_del->to + $tc99m_gen->shelf_life) - $t_tot->to;
-        
+
         # The number of Tc-99m elutions that will "not" be performed
         # as is beyond the end of the total time frame
         $excess_num_of_elu = ceil($diff / $tc99m_gen->elu_itv);
-        
+
         # The "correct" total number of Tc-99m elutions
         $tc99m_gen->tot_num_of_elu(
             $tc99m_gen->tot_num_of_elu
             - $excess_num_of_elu
         );
     }
-    
+
     # A conditional string of the number of elutions
     # in excess; a plural or a singular form of "time"
     my $excess_num_of_elu_str = sprintf(
@@ -1945,7 +1950,7 @@ sub fix_max_ord_of_tc99m_elution {
         $excess_num_of_elu,
         $excess_num_of_elu > 2 ? 's' : '',
     );
-    
+
     if ($routine->is_verbose) {
         my $k = 0;
         @{$routine->rpt_arr} = ();
@@ -2013,7 +2018,7 @@ sub fix_max_ord_of_tc99m_elution {
             $tc99m_gen->tot_num_of_elu,
         );
         $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -2022,10 +2027,10 @@ sub fix_max_ord_of_tc99m_elution {
             );
         }
     }
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
@@ -2033,59 +2038,59 @@ sub fix_max_ord_of_tc99m_elution {
 sub calc_elem_wgt_molar_mass_and_isot_mass_fracs {
     # """Calculate the weighted-average molar mass of an element
     # and the mass fractions of its naturally occurring isotopes"""
-    
+
     my(
         $elem_href,
         $wgt_frac,
         $is_quiet, # Hook for populate_attrs() caller
     ) = @_;
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3])
         if ($routine->is_verbose and not $is_quiet);
-    
+
     #
     # (1) Calculate the weighted-average molar mass of the element.
     # > Weight the molar masses of the isotopes by $wgt_frac
     # > Sum up the weighted molar masses of the isotopes.
     #
-    
+
     # Initialize cumul sums.
     $elem_href->wgt_avg_molar_mass(0);
     $elem_href->mass_frac_sum(0);
-    
+
     # (i) Weight by amount fraction: Weighted "arithmetic" mean
     if ($wgt_frac =~ /am(?:oun)?t/i) {
         foreach my $key (keys %{$elem_href->nat_occ_isots}) {
             # Redirection
             my $isot = $elem_href->nat_occ_isots->{$key};
-            
+
             # (a) Weight by "multiplication"
             $isot->wgt_molar_mass($isot->$wgt_frac * $isot->molar_mass);
-            
+
             # (b) (cumul sum) Sum up the weighted molar masses of the.
             $elem_href->wgt_avg_molar_mass(
                 $elem_href->wgt_avg_molar_mass + $isot->wgt_molar_mass
             );
         }
     }
-    
+
     # (ii) Weight by mass fraction: Weighted "harmonic" mean
     elsif ($wgt_frac =~ /mass/i) {
         foreach my $key (keys %{$elem_href->nat_occ_isots}) {
             # Redirection
             my $isot = $elem_href->nat_occ_isots->{$key};
             my $isot_wgt_frac = $isot->$wgt_frac // 0;
-            
+
             # (1) Weight by "division"
             $isot->wgt_molar_mass($isot_wgt_frac / $isot->molar_mass);
-            
+
             # (2) (cumul sum) Sum up the weighted molar masses of the.
             #     => Will be the denominator in (4).
             $elem_href->wgt_avg_molar_mass(
                 $elem_href->wgt_avg_molar_mass + $isot->wgt_molar_mass
             );
-            
+
             # (3) Cumulative sum of the mass fractions of the isotopes
             #     => Will be the numerator in (4).
             #     => The final value of the cumulative sum
@@ -2100,7 +2105,7 @@ sub calc_elem_wgt_molar_mass_and_isot_mass_fracs {
             / $elem_href->wgt_avg_molar_mass
         );
     }
-    
+
     #
     # (2) Calculate mass fractions of the isotopes: (1) divided by (2)
     # > Run only if the amount fraction is the weighting fraction; otherwise,
@@ -2115,7 +2120,7 @@ sub calc_elem_wgt_molar_mass_and_isot_mass_fracs {
             );
         }
     }
-    
+
     if ($routine->is_verbose and not $is_quiet) {
         my $k = 0;
         @{$routine->rpt_arr} = ();
@@ -2140,7 +2145,7 @@ sub calc_elem_wgt_molar_mass_and_isot_mass_fracs {
                 " have been calculated.";
         }
         $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -2150,15 +2155,15 @@ sub calc_elem_wgt_molar_mass_and_isot_mass_fracs {
             print "\n" if $i =~ /\b[45]\b/;
         }
     }
-    
+
     # Notification - ending
     pause_terminal()
         if ($routine->is_verbose and not $is_quiet);
-    
+
     # Check the calculation results.
     show_amt_and_mass_fracs_and_molar_mass($elem_href)
         if ($routine->is_verbose and not $is_quiet);
-    
+
     return;
 }
 
@@ -2166,16 +2171,16 @@ sub calc_elem_wgt_molar_mass_and_isot_mass_fracs {
 sub show_amt_and_mass_fracs_and_molar_mass {
     # """Show amount and mass fractions of isotopes of
     # a chemical element and its average molar mass.
-    
+
     my $elem_href = shift;
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     my @lengthiest = sort { length $b <=> length $a }
         keys %{$elem_href->nat_occ_isots};
     my $conv = '%'.(length $lengthiest[0]).'s';
-    
+
     my $the_first_half;
     my $the_latter_half;
     say $disp->border->dash;
@@ -2190,14 +2195,14 @@ sub show_amt_and_mass_fracs_and_molar_mass {
             $elem_href->nat_occ_isots->{$key}->molar_mass,
             $molar_mass->symbol,
         );
-        
+
         $the_latter_half = sprintf(
             " [%6.3f %s]; mass frac [%.5f]\n",
             $elem_href->nat_occ_isots->{$key}->wgt_molar_mass,
             $molar_mass->symbol,
             $elem_href->nat_occ_isots->{$key}->mass_frac,
         );
-        
+
         print $the_first_half.$the_latter_half;
     }
     printf(
@@ -2208,10 +2213,10 @@ sub show_amt_and_mass_fracs_and_molar_mass {
         $molar_mass->symbol,
     );
     say $disp->border->dash;
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
@@ -2219,13 +2224,13 @@ sub show_amt_and_mass_fracs_and_molar_mass {
 sub enrich {
     # """Redistribute the mass fractions of isotopes
     # according to the enrichment level of the isotope of interest."""
-    
+
     my $chem_elem   = shift;
     my $isot_of_int = shift;
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     #
     # Arithmetic
     #
@@ -2236,7 +2241,7 @@ sub enrich {
     #        the mass fraction of of an isotope to be processed
     #     c: $remainder; the one $to_be_transferred will take
     #        after subtraction
-    # 
+    #
     # (ii) Variables for b - a = c, where b > a
     #     b: $chem_elem->nat_occ_isots->{$key}->mass_frac;
     #        the mass fraction of of an isotope to be processed
@@ -2248,19 +2253,19 @@ sub enrich {
     #
     my $to_be_transferred;
     my $remainder;
-    
+
     #
-    # As the enrichment of a given isotope of a chemical 
+    # As the enrichment of a given isotope of a chemical
     # element is by definition the mass fraction of the
     # isotope, the attributes 'enrichment' and 'mass_frac'
     # represent essentially the same quantity.
-    # 
+    #
     # I have introduced the attribute 'enrichment' to
     # calculate new mass fractions when a Mo target is
     # enriched in Mo-100: when an element is enriched
     # in one of its isotopes, the mass fractions of
     # all of its isotopes are changed.
-    # 
+    #
     # To do so, we first predefine the by-mass enrichment
     # to $mo100->enri, which may have been
     # overwritten in overwrite_param(), find the remainder
@@ -2268,14 +2273,14 @@ sub enrich {
     # add the remainder to $mo100->mass_frac, and subtract
     # the mass fractions of other Mo isotopes from
     # the remainder until the remainder becomes zero.
-    # 
+    #
     # Such subtraction is performed from the lightest
     # Mo isotope to reflect the use of a centrifuge.
     #
     $to_be_transferred = ($isot_of_int->enri) - ($isot_of_int->mass_frac);
     my $i_remember_you  = $to_be_transferred;
     my $you_remember_me = $isot_of_int->mass_frac;
-    
+
     # Calculation conditions:
     # (1) Current Mo-100 mass fraction and
     # (2) Total mass fraction of other Mo isotopes available
@@ -2302,7 +2307,7 @@ sub enrich {
             $isot_of_int->symb,
         );
         $routine->rpt_arr->[$k] = $disp->border->dash;
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -2311,16 +2316,16 @@ sub enrich {
             );
         }
     }
-    
+
     # Redistribute mass fractions.
     foreach my $key (sort keys %{$chem_elem->nat_occ_isots}) {
         # When the total mass fraction of the isotopes to be
         # transferred to Mo-100 is zero, terminate the iteration.
         last if $to_be_transferred == 0;
-        
+
         # Top border
         say $disp->border->dash if $routine->is_verbose;
-        
+
         # Notify the current isotope.
         if ($routine->is_verbose) {
             printf
@@ -2329,7 +2334,7 @@ sub enrich {
                 $key,
                 $chem_elem->nat_occ_isots->{$key}->mass_frac;
         }
-        
+
         # If 'Mo-100' is to be processed,
         # add the available mass fraction to its current mass fraction.
         if ($key eq $isot_of_int->flag) {
@@ -2348,7 +2353,7 @@ sub enrich {
             }
             next;
         }
-        
+
         # When the mass fraction of an isotope,
         # except the isotope to be enriched or depleted, is zero,
         # skip to the next isotope.
@@ -2369,7 +2374,7 @@ sub enrich {
             }
             next;
         }
-        
+
         # (i) a - b = c, where a >= b
         # If the available mass fraction is greater than
         # or equal to the mass fraction of the isotope to be
@@ -2382,10 +2387,10 @@ sub enrich {
             $remainder
                 = $to_be_transferred
                 - $chem_elem->nat_occ_isots->{$key}->mass_frac;
-            
+
             # Perform b = 0.
             $chem_elem->nat_occ_isots->{$key}->mass_frac(0);
-            
+
             if ($routine->is_verbose) {
                 printf(
                     "%s\"Subtracted\" from [%.5f],".
@@ -2395,10 +2400,10 @@ sub enrich {
                     $chem_elem->nat_occ_isots->{$key}->mass_frac
                 );
             }
-            
+
             # Perform a = c.
             $to_be_transferred = $remainder;
-            
+
             if ($routine->is_verbose) {
                 printf(
                     "%s\$to_be_transferred is now: [%.5f]\n",
@@ -2407,7 +2412,7 @@ sub enrich {
                 );
             }
         }
-        
+
         # (ii) b - a = c, where b > a
         # If, on the other hand,
         # the available mass fraction is less than
@@ -2421,7 +2426,7 @@ sub enrich {
             $remainder
                 = $chem_elem->nat_occ_isots->{$key}->mass_frac
                 - $to_be_transferred;
-            
+
             # Notify that b is larger than a.
             if ($routine->is_verbose) {
                 printf(
@@ -2442,10 +2447,10 @@ sub enrich {
                     $chem_elem->nat_occ_isots->{$key}->mass_frac,
                 );
             }
-            
+
             # Perform b = c.
             $chem_elem->nat_occ_isots->{$key}->mass_frac( $remainder );
-            
+
             if ($routine->is_verbose) {
                 printf(
                     "%s\\$mo->nat_occ_isots->{$key}->mass_frac: [%.5f]\n",
@@ -2453,13 +2458,13 @@ sub enrich {
                     $chem_elem->nat_occ_isots->{$key}->mass_frac,
                 );
             }
-            
+
             # Perform a = 0.
             $to_be_transferred = 0;
         }
         say $disp->border->dash if $routine->is_verbose;
     }
-    
+
     # Notification - ending
     if ($routine->is_verbose) {
         my $k = 0;
@@ -2485,7 +2490,7 @@ sub enrich {
         $routine->rpt_arr->[$k++] =
             "(but now with 'mass_frac' str argument--preventing mass_frac recalc)";
         $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -2496,16 +2501,16 @@ sub enrich {
         }
     }
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub convert_mass_frac_to_amt_frac {
     # """Convert mass fractions to amount fractions."""
-    
+
     my $chem_elem = shift;
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
 
@@ -2516,7 +2521,7 @@ sub convert_mass_frac_to_amt_frac {
             / $chem_elem->nat_occ_isots->{$key}->molar_mass
         );
     }
-    
+
     if ($routine->is_verbose) {
         my $k = 0;
         @{$routine->rpt_arr} = ();
@@ -2528,7 +2533,7 @@ sub convert_mass_frac_to_amt_frac {
         $routine->rpt_arr->[$k++] =
             "show_amt_and_mass_fracs_and_molar_mass() will print the results.",
         $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -2537,21 +2542,21 @@ sub convert_mass_frac_to_amt_frac {
             );
         }
     }
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
     show_amt_and_mass_fracs_and_molar_mass($chem_elem) if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub apply_eff_of_mo_tar_comp {
     # """Apply the effects of Mo target composition."""
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     # (1) Define the oxygen-molybdenum mole ratio and the mass density
     #     of the Mo target, which are used for various calculations,
     #     and define the thermal conductivity, and melting and boiling
@@ -2565,7 +2570,7 @@ sub apply_eff_of_mo_tar_comp {
     }
 
     $mo->num_moles(1);
-    
+
     if ($mo_tar->mole_ratio_o_to_mo == 0) {
         $o->num_moles(0);
         $mo_tar->mass_dens(10.28e+6); # g m^-3 at near r.t.
@@ -2587,7 +2592,7 @@ sub apply_eff_of_mo_tar_comp {
         $mo_tar->melt_point(1068.15);
         $mo_tar->boil_point(1428.15);
     }
-    
+
     # (2) Calculate the volume of the Mo target and, by multiplying
     #     the volume by its mass density, calculate its mass.
     if ($routine->is_verbose) {
@@ -2599,7 +2604,7 @@ sub apply_eff_of_mo_tar_comp {
         );
     }
     calc_vol_and_mass($mo_tar);
-    
+
     if ($routine->is_verbose) {
         my $k = 0;
         my %item_lab = (
@@ -2648,34 +2653,34 @@ sub apply_eff_of_mo_tar_comp {
             $mass->symb,
         );
         $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$k; $i++) {
             print $disp->indent if $i !~ /\b[0]|$k\b/;
-            
+
             # Insert a hanging indent.
             my $the_len = length ($disp->indent."(1) ") - length $disp->indent;
             print $alignment->symb->bef x $the_len
                 if $i !~ /\b[0-2]|[5-6]|$k\b/;
-            
+
             print "($item_lab{$i}) " if $i =~ /\b[256]\b/;
             say $routine->rpt_arr->[$i];
         }
     }
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub calc_molar_mass_of_mo_tar_and_mass_frac_of_mo {
     # """Calculate the new molar mass of the chosen Mo target."""
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
-    
+
+
     # (1/2) Calculate the new molar mass of the chosen Mo target which
     #       has been affected by, if any, Mo-100 enrichment.
     # > apply_eff_of_mo_tar_comp() defines '$mo->num_moles' and
@@ -2693,7 +2698,7 @@ sub calc_molar_mass_of_mo_tar_and_mass_frac_of_mo {
         ($mo->num_moles * $mo->wgt_avg_molar_mass)
         / $mo_tar->molar_mass
     );
-    
+
     # The calculated elemental mass fraction of Mo
     if ($routine->is_verbose) {
         my %item_lab = (
@@ -2703,7 +2708,7 @@ sub calc_molar_mass_of_mo_tar_and_mass_frac_of_mo {
             2 => '2',
             3 => '3',
         );
-        
+
         my $k = 0;
         @{$routine->rpt_arr} = ();
         $routine->rpt_arr->[$k++] = say $disp->border->dash;
@@ -2725,7 +2730,7 @@ sub calc_molar_mass_of_mo_tar_and_mass_frac_of_mo {
             $mo_tar->symb,
             $mo->mass_frac,
         );
-        
+
         foreach my $j (1..3) {
             $routine->rpt_arr->[$j] = sprintf(
                 "%s(%s) %s\n",
@@ -2734,11 +2739,11 @@ sub calc_molar_mass_of_mo_tar_and_mass_frac_of_mo {
                 $routine->rpt_arr->[$j],
             );
         }
-        
+
         $routine->rpt_arr->[4] =
         $routine->rpt_arr->[5] =
         $routine->rpt_arr->[6] = "";
-        
+
         if ($mo_tar->mole_ratio_o_to_mo != 0 and $mo_tar->is_enri) {
             # For nonmetallic Mo targets enriched in Mo-100
             $routine->rpt_arr->[4] = sprintf(
@@ -2753,7 +2758,7 @@ sub calc_molar_mass_of_mo_tar_and_mass_frac_of_mo {
             );
             $routine->rpt_arr->[6] =
                 "affected (2) and thereby (3).";
-            
+
             # Modify strings
             my $the_len = length $disp->indent."(1) " - length $disp->indent;
             foreach my $j (4..6) {
@@ -2766,10 +2771,10 @@ sub calc_molar_mass_of_mo_tar_and_mass_frac_of_mo {
             }
         }
         $routine->rpt_arr->[7] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$#{$routine->rpt_arr}; $i++) {
             printf "%s", $routine->rpt_arr->[$i];
-            
+
             print "\n" if (
                 $mo_tar->mole_ratio_o_to_mo != 0
                 and $mo_tar->is_enri
@@ -2780,21 +2785,21 @@ sub calc_molar_mass_of_mo_tar_and_mass_frac_of_mo {
 
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub calc_mass_and_mass_dens_of_mo_and_mo100 {
     # """Calculate the masses and mass densities of Mo and Mo-100"""
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     #
     # Masses
     #
-    
+
     # Mass of Mo element
     # > Used for Mo-99 specific activity calculation
     # > calc_molar_mass_of_mo_tar_and_mass_frac_of_mo() populates
@@ -2804,7 +2809,7 @@ sub calc_mass_and_mass_dens_of_mo_and_mo100 {
         $mo->mass_frac #<--calc_molar_mass_of_mo_tar_and_mass_frac_of_mo()
         * $mo_tar->mass #<--calc_vol_and_mass()
     );
-    
+
     # Mass of Mo-100
     # > calc_elem_wgt_molar_mass_and_isot_mass_fracs() "or"
     #   enrich() populates $mo100->mass_frac;
@@ -2815,11 +2820,11 @@ sub calc_mass_and_mass_dens_of_mo_and_mo100 {
         # v Calculated in the above
         * $mo->mass
     );
-    
+
     #
     # Mass densities
     #
-    
+
     # Mass density of Mo element
     # > calc_molar_mass_of_mo_tar_and_mass_frac_of_mo() populates
     #   the attribute 'mass_frac' and apply_eff_of_mo_tar_comp() populates
@@ -2831,7 +2836,7 @@ sub calc_mass_and_mass_dens_of_mo_and_mo100 {
         # v apply_eff_of_mo_tar_comp()
         * $mo_tar->mass_dens
     );
-    
+
     # Mass density of "Mo-100"
     # calc_elem_wgt_molar_mass_and_isot_mass_fracs()
     # "or" enrich() defines '$mo100->mass_frac';
@@ -2842,7 +2847,7 @@ sub calc_mass_and_mass_dens_of_mo_and_mo100 {
         # v Calculated in the above
         * $mo->mass_dens
     );
-    
+
     if ($routine->is_verbose) {
         my $k = 0;
         @{$routine->rpt_arr} = ();
@@ -2896,7 +2901,7 @@ sub calc_mass_and_mass_dens_of_mo_and_mo100 {
             $mass_dens->symbol,
         );
         $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -2916,19 +2921,19 @@ sub calc_mass_and_mass_dens_of_mo_and_mo100 {
 
 sub calc_num_dens {
     # """Calculate the number density of a given nuclide.
-    
+
     my $nuclide = shift;
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     # Calculate the number density.
     $nuclide->num_dens(        # Num of nuclides cm^-3
         $nuclide->mass_dens    # g cm^-3
         * $const->avogadro     # Num of substances mol^-1
         / $nuclide->molar_mass # g mol^-1
     );
-    
+
     if ($routine->is_verbose) {
         my $conv = '%-'.(length '$const->avogadro').'s';
         my $k = 0;
@@ -2964,7 +2969,7 @@ sub calc_num_dens {
             $num_dens->symbol,
         );
         $routine->rpt_arr->[$k] = $disp->border->dash;
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -2973,17 +2978,17 @@ sub calc_num_dens {
             );
         }
     }
-    
+
     # Ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub calc_mo100_num_dens {
     # """Calculate the number density of Mo-100."""
-    
+
     #
     # Notes
     #
@@ -2994,7 +2999,7 @@ sub calc_mo100_num_dens {
     #     from its reference value, 95.94 g mol^-1; such a "new" molar mass
     #     of Mo results in a different elemental mass fraction of Mo
     #     when a Mo oxide target is used.
-    # 
+    #
     # Depending on the chemical composition of a Mo target,
     # the following results:
     # (1) Different number of moles of oxygen atoms per mole of a Mo
@@ -3013,45 +3018,45 @@ sub calc_mo100_num_dens {
     #     fractions of (a)
     # (c) Convert the new mass fractions of Mo isotopes to amount fractions
     #     (for displaying purposes only).
-    # 
+    #
     # Caution: When natural Mo is used ($mo_tar->is_enri == 0),
     #          no mass fraction should be recalculated, therefore
     #          the steps (a)--(c) are all skipped.
-    # 
+    #
     # (d) Mass fraction of Mo (out of a Mo target)
     #
-    
+
     # (a)--(c)
     if ($mo_tar->is_enri) {
         enrich(
             $mo,
             $mo100,
         );
-        
+
         calc_elem_wgt_molar_mass_and_isot_mass_fracs(
             $mo,
             'mass_frac', # Caution: Must be 'mass_frac', not 'amt_frac'
         );
-        
+
         convert_mass_frac_to_amt_frac($mo);
     }
-    
+
     # (d)
     apply_eff_of_mo_tar_comp();
     calc_molar_mass_of_mo_tar_and_mass_frac_of_mo();
-    
+
     # (2) Masses and mass densities of Mo and Mo-100
     #     (requires calling apply_eff_of_mo_tar_comp() and
     #     calc_molar_mass_of_mo_tar_and_mass_frac_of_mo() beforehand)
     calc_mass_and_mass_dens_of_mo_and_mo100();
-    
+
     # (3) Number density of Mo-100
     # > Requires calling the following subroutines beforehand:
     #   apply_eff_of_mo_tar_comp(),
     #   calc_molar_mass_of_mo_tar_and_mass_frac_of_mo(), and
     #   calc_mass_and_mass_dens_of_mo_and_mo100()
     calc_num_dens($mo100);
-    
+
     if ($routine->is_verbose) {
         my $k = 0;
         @{$routine->rpt_arr} = ();
@@ -3065,7 +3070,7 @@ sub calc_mo100_num_dens {
         $routine->rpt_arr->[$k++] =
             "summary_of_mo100_num_dens_calc() will print the summary.",
         $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-        
+
         for (my $i=0; $i<=$k; $i++) {
             printf(
                 "%s%s\n",
@@ -3074,21 +3079,21 @@ sub calc_mo100_num_dens {
             );
         }
     }
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
     summary_of_mo100_num_dens_calc() if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub summary_of_mo100_num_dens_calc {
     # """Show the summary of Mo-100 number density calculation."""
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     my %eq_lab = (
         # (key) An index of @{$routine->rpt_arr}
         # (val)  An equation label
@@ -3100,7 +3105,7 @@ sub summary_of_mo100_num_dens_calc {
         8  => '6',
         10 => '7',
     );
-    
+
     my $k = 0;
     @{$routine->rpt_arr} = ();
     $routine->rpt_arr->[$k++] = $disp->border->dash;
@@ -3155,14 +3160,14 @@ sub summary_of_mo100_num_dens_calc {
         $mo100->num_dens,
     );
     $routine->rpt_arr->[$k] = $routine->rpt_arr->[0];
-    
+
     for (my $i=0; $i<=$k; $i++) {
         printf(
             "%s%s",
             $i !~ /\b[0]|$k\b/ ? $disp->indent : '',
             $routine->rpt_arr->[$i],
         );
-        
+
         if ($i =~ /\b[2-6]|8|10\b/) {
             calc_alignment_symb_len(
                 $routine->rpt_arr->[$i],
@@ -3173,24 +3178,24 @@ sub summary_of_mo100_num_dens_calc {
                 ),
                 'ragged',
             );
-            
+
             print $alignment->symb->aft x $alignment->symb->len;
             printf "... (%d)", $eq_lab{$i};
         }
         print "\n";
         print "\n" if $i =~ /\b[46]\b/;
     }
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub convert_units {
     # """Convert units using ${<unit_obj>}->factor."""
-    
+
     #
     # For those calculated in calc_mo100_num_dens()
     #
@@ -3290,15 +3295,15 @@ sub convert_units {
             attrs => [qw/rad1 rad2 hgt/],
         },
     );
-    
+
     foreach my $k1 (keys %to_be_converted) {
         # Redirection
         my $obj        = $to_be_converted{$k1}{obj};
         my $attrs_aref = $to_be_converted{$k1}{attrs};
-        
+
         foreach my $attr (@{$attrs_aref}) {
             my($op, $fac);
-            
+
             if ($attr =~ /\bfrom|to|half_life_phy\b/i) {
                 $op  = 'div',
                 $fac = $time->factor,
@@ -3343,14 +3348,14 @@ sub convert_units {
                 $op  = 'add',
                 $fac = $temp->factor,
             }
-            
+
             next if not $obj->$attr;
             $obj->$attr($obj->$attr * $fac) if $op =~ /mul/i;
             $obj->$attr($obj->$attr / $fac) if $op =~ /div/i;
             $obj->$attr($obj->$attr + $fac) if $op =~ /add/i;
         }
     }
-    
+
     #
     # For those calculated in calc_mo99_tc99m_actdyn_data()
     #
@@ -3368,20 +3373,20 @@ sub convert_units {
         ) {
             $_ /= $act->factor for @{$_->[$_nrg]};
         }
-        
+
         $tc99m->act->elu_tot_arr->[$_nrg] /= $act->factor;
     }
-    
+
     return;
 }
 
 
 sub read_in_micro_xs {
     # """Read in micro cross section data expressed in cm^2."""
-    
+
     # Notification - beginning
     show_routine_header((caller(0))[3]) if $routine->is_verbose;
-    
+
     open my $inp_micro_cs_fh, '<', $xs->inp;
     foreach (<$inp_micro_cs_fh>) {
         chomp;
@@ -3389,7 +3394,7 @@ sub read_in_micro_xs {
         push @{$xs->micro}, $_ if /^[\d]+/;
     }
     close $inp_micro_cs_fh;
-    
+
     if ($routine->is_verbose) {
         say $disp->border->dash;
         printf(
@@ -3397,7 +3402,7 @@ sub read_in_micro_xs {
             $disp->indent,
             $xs->inp,
         );
-        
+
         if ($xs->is_chk) {
             my @idx_chk = (0, 10, 100, 1000, $#{$xs->micro});
             foreach (@idx_chk) {
@@ -3411,17 +3416,17 @@ sub read_in_micro_xs {
         }
         say $disp->border->dash;
     }
-    
+
     # Notification - ending
     pause_terminal() if $routine->is_verbose;
-    
+
     return;
 }
 
 
 sub calc_mo99_tc99m_actdyn_data {
     # """Calculate Mo-99/Tc-99m activity dynamics data."""
-    
+
     # y/n prompt
     my $yn_msg = sprintf("%sRun? [y/n]> ", $disp->indent);
     print $yn_msg;
@@ -3431,13 +3436,13 @@ sub calc_mo99_tc99m_actdyn_data {
         print $yn_msg;
     }
     $actdyn->is_run(1);
-    
+
     print " Calculation in progress..." if not $routine->is_verbose;
     print "\n";
-    
+
     # (1/2) Read in microscopic cross section data.
     read_in_micro_xs();
-    
+
     # (2/2) Read in photon fluence data.
     state $is_first = 1;
     foreach my $_nrg (@{$actdyn->nrgs_of_int}) {
@@ -3448,7 +3453,7 @@ sub calc_mo99_tc99m_actdyn_data {
         # read in by ()read_in_micro_xs, which must be initialized to 0
         # at every $_nrg.
         $xs->idx(0);
-        
+
         # arefs nested to beam energies
         # > Used later for writing datasets to gnuplot files.
         $_->[$_nrg] = [] for (
@@ -3463,7 +3468,7 @@ sub calc_mo99_tc99m_actdyn_data {
             $tc99m->act->dec_arr,
             $tc99m->act->elu_arr,
         );
-        
+
         #
         # Activity calculation term (1/3)
         # > Pointwise multiplication (PWM): Multiplication of a Monte Carlo
@@ -3472,7 +3477,7 @@ sub calc_mo99_tc99m_actdyn_data {
         #   a pointwise product (PWP) expressed in particle^-1.
         # > The terms outside the integral must be multiplied later by the PWPs.
         #
-        
+
         # PHITS track-eng files labeled with beam energies
         # e.g. tar_e20_spt.ang, tar_e21_spt.ang, ...
         $actdyn->phits->ang(
@@ -3483,11 +3488,11 @@ sub calc_mo99_tc99m_actdyn_data {
             '.'.
             $phits->ext->ang
         );
-        
+
         open my $ang_fh, '<', $actdyn->phits->ang;
         foreach (<$ang_fh>) {
             chomp;
-            
+
             # Store photon fluences into @col
             if (/^[\s]+[\d]+/) {
                 # $col[0]: An empty value (not undef)
@@ -3501,7 +3506,7 @@ sub calc_mo99_tc99m_actdyn_data {
                 # $col[8]: r.err
                 my @col = split /[\s]+/;
                 $phits->flues->[$xs->idx] = $col[5];
-                
+
                 # Multiply a photon fluence expressed in cm^-2 particle^-1
                 # by the energy-corresponding microscopic cross section
                 # expressed in cm^2. The resulting product will then have
@@ -3511,16 +3516,16 @@ sub calc_mo99_tc99m_actdyn_data {
                 $actdyn->pwm->pointwise->[$xs->idx] =
                     $phits->flues->[$xs->idx]
                     * $xs->micro->[$xs->idx];
-                
+
                 # Move on to the next photon energy index.
                 $xs->idx($xs->idx + 1);
             }
-            
+
             # Skip comments and unnecessary lines.
             else { next }
         }
         close $ang_fh;
-        
+
         # Sum up all the elements of @{$actdyn->pwm->pointwise} and store
         # the products into $actdyn->pwm->gross.
         # > The use of @{$actdyn->pwm->pointwise} is to check the PWPs,
@@ -3529,7 +3534,7 @@ sub calc_mo99_tc99m_actdyn_data {
         #   $actdyn->pwm->gross must be initialized at every $_nrg.
         $actdyn->pwm->gross($actdyn->pwm->gross + $_)
             for @{$actdyn->pwm->pointwise};
-        
+
         # PWM check file
         if ($actdyn->pwm->is_chk) {
             if ($is_first) {
@@ -3544,10 +3549,10 @@ sub calc_mo99_tc99m_actdyn_data {
                 mkdir $actdyn->path if not -e $actdyn->path;
                 unlink $actdyn->pwm->chk if -e $actdyn->pwm->chk;
             }
-            
+
             open my $pwm_chk_fh, '>>:encoding(UTF-8)', $actdyn->pwm->chk;
             select($pwm_chk_fh);
-            
+
             # Header
             say $gp->cmt_border->dash;
             printf(
@@ -3572,7 +3577,7 @@ sub calc_mo99_tc99m_actdyn_data {
                 'Pointwise product (electron^-1)',
             );
             say $gp->cmt_border->dash;
-            
+
             # Data
             for (my $i=0; $i<=$#{$actdyn->pwm->pointwise}; $i++) {
                 printf(
@@ -3583,23 +3588,23 @@ sub calc_mo99_tc99m_actdyn_data {
                     $gp->col->content_sep,
                     $actdyn->pwm->pointwise->[$i],
                 );
-                
+
                 print "\n" if $i == $#{$actdyn->pwm->pointwise};
             }
-            
+
             # Insert one blank line indicating the end of a gnuplot data block,
             # and mark the end of the gnuplot data file.
             print $_nrg != $actdyn->nrgs_of_int->[-1] ?
                 $gp->end_of->block : $gp->end_of->file;
-            
+
             select(STDOUT);
             close $pwm_chk_fh;
-            
+
             notify_file_gen($actdyn->pwm->chk) if $is_first;
-            
+
             $is_first = 0;
         }
-        
+
         # Display $actdyn->pwm->gross at each beam energy in real time.
         if (
             $actdyn->pwm->is_show_gross
@@ -3632,7 +3637,7 @@ sub calc_mo99_tc99m_actdyn_data {
                 $routine->rpt_arr->[$k++] =
                     " set \$mo99_act_nrg_tirr->is_calc_disp(1)";
                 $routine->rpt_arr->[$k++] = $routine->rpt_arr->[0];
-                
+
                 for (my $i=0; $i<=$k; $i++) {
                     printf(
                         "%s%s\n",
@@ -3642,7 +3647,7 @@ sub calc_mo99_tc99m_actdyn_data {
                 }
             }
         }
-        
+
         #
         # Activity calculation term (2/3)
         # > Reaction rate
@@ -3653,7 +3658,7 @@ sub calc_mo99_tc99m_actdyn_data {
             * $const->coulomb     # Num electrons/Coulomb
             * $actdyn->pwm->gross #<--Obtained in (1/3) above
         );
-        
+
         #
         # Activity calculation term (3/3)
         # > Time-dependent quantities
@@ -3663,11 +3668,11 @@ sub calc_mo99_tc99m_actdyn_data {
         #   could be overwritten by the subroutine overwrite_param().
         # > Therefore, a command calling fix_time_frames() has been placed
         #   immediately after the command calling overwrite_param().
-        
+
         #
         # Initializations
         #
-        
+
         # Decay time, beginning
         # > Must be performed at each $_nrg
         # > "Incremented" at $t >= $t_irr->to (greater than or equal to the EOI)
@@ -3683,14 +3688,14 @@ sub calc_mo99_tc99m_actdyn_data {
         #   performed at each ($t > $t_del->to) % $tc99m_gen->elu_itv == 0.
         # > e.g. 96, 120, 144, ...
         $t_elu->from(1);
-        
+
         foreach my $t ($t_tot->from..$t_tot->to) {
             # Mo-99 saturation activity
             $mo99->act->sat($actdyn->rrate);
             $mo99->sp_act->sat($mo99->act->sat / $mo->mass);
             $mo99->act->sat_arr->[$_nrg][$t]    = $mo99->act->sat;
             $mo99->sp_act->sat_arr->[$_nrg][$t] = $mo99->sp_act->sat;
-            
+
             # Mo-99 activity
             $mo99->act->irr(
                 $mo99->act->sat
@@ -3699,7 +3704,7 @@ sub calc_mo99_tc99m_actdyn_data {
             $mo99->sp_act->irr($mo99->act->irr / $mo->mass);
             $mo99->act->irr_arr->[$_nrg][$t]    = $mo99->act->irr;
             $mo99->sp_act->irr_arr->[$_nrg][$t] = $mo99->sp_act->irr;
-            
+
             # Calculation check display
             if (
                 $t == $t_irr->to
@@ -3723,11 +3728,11 @@ sub calc_mo99_tc99m_actdyn_data {
                     $curr->symb,
                 );
             }
-            
+
             # Ratio between Mo-99 activity and Mo-99 saturation activity
             $mo99->act->ratio_irr_to_sat_arr->[$_nrg][$t] =
                 $mo99->act->irr / $mo99->act->sat;
-            
+
             # Tc-99m Activity
             $tc99m->act->irr(
                 $mo99->negatron_dec_2->branching_fraction * (
@@ -3744,7 +3749,7 @@ sub calc_mo99_tc99m_actdyn_data {
                 * $actdyn->rrate
             );
             $tc99m->act->irr_arr->[$_nrg][$t] = $tc99m->act->irr;
-            
+
             # Mo-99 decay activity
             # (i) Before the EOI: NaN
             if ($t < $t_irr->to) { # e.g. $t < 72
@@ -3769,22 +3774,22 @@ sub calc_mo99_tc99m_actdyn_data {
                         * (1 - $chem_proc->mo99_loss_ratio_at_eop)
                     );
                 }
-                
+
                 # Mo-99 specific decay activity
                 $mo99->sp_act->dec($mo99->act->dec / $mo->mass);
-                
+
                 # Storage
                 $mo99->act->dec_arr->[$_nrg][$t]    = $mo99->act->dec;
                 $mo99->sp_act->dec_arr->[$_nrg][$t] = $mo99->sp_act->dec;
             }
-            
+
             # Tc-99m decay activity and elution activity
             # (i) Before the EOI: NaN
             if ($t < $t_irr->to) { # e.g. $t < 72
                 # Decay activity
                 $tc99m->act->dec_arr->[$_nrg][$t] =
                     $tc99m->act->dec($gp->missing_dat_str);
-                
+
                 # Elution activity
                 $tc99m->act->elu_arr->[$_nrg][$t] =
                     $tc99m->act->elu($gp->missing_dat_str);
@@ -3797,7 +3802,7 @@ sub calc_mo99_tc99m_actdyn_data {
                         # Terms signifying the decay of Tc-99m
                         $tc99m->act->irr_arr->[$_nrg][$t_irr->to]
                         * exp(-$tc99m->dec_const * $t_dec->from)
-                        
+
                         # Terms signifying the production of Tc-99m
                         # by the negatron decay of Mo-99
                         + $mo99->negatron_dec_2->branching_fraction
@@ -3813,12 +3818,12 @@ sub calc_mo99_tc99m_actdyn_data {
                             )
                         )
                     );
-                    
+
                     # Elution activity
                     $tc99m->act->elu_arr->[$_nrg][$t] =
                         $tc99m->act->elu($gp->missing_dat_str);
                 }
-                
+
                 # (iv) From the end of chemical processing (EOP)
                 # > Reduce the decay activities of Tc-99m by
                 #   $chem_proc->tc99m_loss_ratio_at_eop.
@@ -3830,14 +3835,14 @@ sub calc_mo99_tc99m_actdyn_data {
                         * (1 - $chem_proc->tc99m_loss_ratio_at_eop)
                     );
                 }
-                
+
                 # (v) At the EOD
                 # > Reduce the Tc-99m decay activity by
                 #   (1 - $tc99m_gen->elu_eff)
                 if ($t == $t_del->to) { # e.g. $t == 96
                     # Tc-99m elute
                     $tc99m->act->elu($tc99m->act->dec * $tc99m_gen->elu_eff);
-                    
+
                     # Remnant Tc-99m activity that boosts
                     # its growth toward the Mo-99 activity
                     # > Later stored into
@@ -3845,11 +3850,11 @@ sub calc_mo99_tc99m_actdyn_data {
                     $tc99m->act->dec(
                         $tc99m->act->dec - $tc99m->act->elu
                     );
-                    
+
                     # Increment the elution ordinal count from 1 to 2.
                     $tc99m_gen->elu_ord_count($tc99m_gen->elu_ord_count + 1);
                 }
-                
+
                 # After the EOD
                 if ($t > $t_del->to) { # e.g. $t > 96
                     $tc99m->act->dec(
@@ -3864,7 +3869,7 @@ sub calc_mo99_tc99m_actdyn_data {
                             )
                         ] # 96, 120, 144, ...
                         * exp(-$tc99m->dec_const * $t_elu->from)
-                        
+
                         # Terms signifying the production of
                         # Tc-99m by the negatron decay of Mo-99
                         + $mo99->negatron_dec_2->branching_fraction * (
@@ -3889,10 +3894,10 @@ sub calc_mo99_tc99m_actdyn_data {
                             )
                         )
                     );
-                    
+
                     # Increment the elution time.
                     $t_elu->from($t_elu->from + 1);
-                    
+
                     #'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                     # Condition 1
                     # > When the time after the arrival of Tc-99m generators
@@ -3924,7 +3929,7 @@ sub calc_mo99_tc99m_actdyn_data {
                             $tc99m->act->dec
                             * $tc99m_gen->elu_eff
                         );
-                        
+
                         # Define the remnant Tc-99m activity that boosts
                         # its growth toward the Mo-99 activity.
                         # > Later stored into
@@ -3932,23 +3937,23 @@ sub calc_mo99_tc99m_actdyn_data {
                         $tc99m->act->dec(
                             $tc99m->act->dec - $tc99m->act->elu
                         );
-                        
+
                         # Increment the elution ordinal count.
                         $tc99m_gen->elu_ord_count(
                             $tc99m_gen->elu_ord_count
                             + 1
                         );
-                        
+
                         # Initialize the beginning elution time
                         # so that it can again result in 1..24.
                         $t_elu->from(1);
                     }
                 }
-                
+
                 # Storage
                 $tc99m->act->dec_arr->[$_nrg][$t] = $tc99m->act->dec;
                 $tc99m->act->elu_arr->[$_nrg][$t] = $tc99m->act->elu;
-                
+
                 #'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                 # Elution activity of Tc-99m
                 # > When the time after the arrival of Tc-99m generators
@@ -3965,7 +3970,7 @@ sub calc_mo99_tc99m_actdyn_data {
                     $tc99m->act->elu_arr->[$_nrg][$t] =
                         $gp->missing_dat_str;
                 }
-                
+
                 # Increment the decay time.
                 # > !! Applies also to the Mo-99 decay activities !!
                 # > Must be initialized at every beginning of $_nrg.
@@ -3974,7 +3979,7 @@ sub calc_mo99_tc99m_actdyn_data {
                 }
             }
         }
-        
+
         # Calculate the total activity of Tc-99m eluates.
         foreach (@{$tc99m->act->elu_arr->[$_nrg]}) {
             # Skip NaN and obtain a cumulative sum.
@@ -3982,7 +3987,7 @@ sub calc_mo99_tc99m_actdyn_data {
                 $tc99m->act->elu_tot_arr->[$_nrg] += $_;
             }
         }
-        
+
         # If specified by the user, discard the activity of
         # the first Tc-99m eluate, which contains the ground state Tc-99.
         if ($tc99m_gen->elu_ord_from != 1) {
@@ -3990,27 +3995,27 @@ sub calc_mo99_tc99m_actdyn_data {
                 -= $tc99m->act->elu_arr->[$_nrg][$t_del->to];
         }
     }
-    
+
     # Remove an existing PWM check file if it were not to be generated.
     unlink $actdyn->pwm->chk if $actdyn->pwm->is_chk == 0;
-    
+
     printf(
         "%sActivity dynamics calculation completed.\n",
         $disp->indent,
     );
-    
+
     return;
 }
 
 
 sub gen_mo99_tc99m_actdyn_data {
     # """Write the calculated Mo-99/Tc-99m activity dynamics data to files."""
-    
+
     my $prog_info_href = shift;
-    
+
     # Define fnames of 'actdyn' objects
     define_fnames_for_actdyn_obj();
-    
+
     # Excel object
     my $mo99_tc99m_actdyn_wb =
         Excel::Writer::XLSX->new($mo99_tc99m_actdyn->excel->xlsx);
@@ -4040,11 +4045,11 @@ sub gen_mo99_tc99m_actdyn_data {
     open my $gp_dat1_fh, '>:encoding(UTF-8)', $mo99_act_nrg_tirr->gp->dat;
     open my $gp_dat2_fh, '>:encoding(UTF-8)', $mo99_act_nrg->gp->dat;
     open my $gp_dat3_fh, '>:encoding(UTF-8)', $mo99_tc99m_actdyn->gp->dat;
-    
+
     #
     # Comment section
     #
-    
+
     # Front matter
     my $k = 0;
     @{$gp->file_header->info} = ();
@@ -4067,7 +4072,7 @@ sub gen_mo99_tc99m_actdyn_data {
     create_timestamp();
     $gp->file_header->info->[$k++] = $disp->timestamp->where_month_is_named;
     $gp->file_header->info->[$k] = $gp->file_header->info->[0];
-    
+
     for (my $i=0; $i<=$k; $i++) {
         # Centering
         if ($i !~ /\b[0]|$k\b/) {
@@ -4085,7 +4090,7 @@ sub gen_mo99_tc99m_actdyn_data {
             $i !~ /\b[0]|$k\b/ ? $gp->cmt_symb.' ' : '',
             $gp->file_header->info->[$i],
         );
-        
+
         if ($i == 1) {
             say $gp_dat1_fh $gp->file_header->info->[$i];
             say $gp_dat2_fh $gp->file_header->info->[$i];
@@ -4113,7 +4118,7 @@ sub gen_mo99_tc99m_actdyn_data {
                 $cell_form_dflt,
             );
         }
-        
+
         elsif ($i == 2) {
             say $gp_dat1_fh $gp->file_header->info->[$i];
             say $gp_dat2_fh $gp->file_header->info->[$i];
@@ -4138,7 +4143,7 @@ sub gen_mo99_tc99m_actdyn_data {
                 $cell_form_dflt,
             );
         }
-        
+
         else {
             say $gp_dat1_fh $gp->file_header->info->[$i];
             say $gp_dat2_fh $gp->file_header->info->[$i];
@@ -4150,7 +4155,7 @@ sub gen_mo99_tc99m_actdyn_data {
                 $cell_form_dflt,
             );
         }
-        
+
         # Blank lines
         if ($i =~ /\b[024]\b/ or $i == $k - 1) {
             say $gp_dat1_fh $gp->cmt_symb;
@@ -4164,7 +4169,7 @@ sub gen_mo99_tc99m_actdyn_data {
             );
         }
     }
-    
+
     # Header
     $k = 0;
     @{$gp->file_header->header} = ();
@@ -4178,7 +4183,7 @@ sub gen_mo99_tc99m_actdyn_data {
                 length $gp->file_header->header->[0],
                 'centered',
             );
-            
+
             $gp->file_header->header->[$i] =
                 ($alignment->symb->bef x $alignment->symb->len).
                 $gp->file_header->header->[$i];
@@ -4198,7 +4203,7 @@ sub gen_mo99_tc99m_actdyn_data {
             $cell_form_dflt,
         );
     }
-    
+
     # Subheader 1: Converter
     $k = 0;
     @{$gp->file_header->subheader} = ();
@@ -4317,7 +4322,7 @@ sub gen_mo99_tc99m_actdyn_data {
             );
         }
     }
-    
+
     # Subheader 2: Mo target
     $k = 0;
     @{$gp->file_header->subheader} = ();
@@ -4413,7 +4418,7 @@ sub gen_mo99_tc99m_actdyn_data {
                 length $gp->file_header->subheader->[0],
                 'centered',
             );
-            
+
             $gp->file_header->subheader->[$i] =
                 ($alignment->symb->bef x $alignment->symb->len).
                 $gp->file_header->subheader->[$i];
@@ -4446,11 +4451,11 @@ sub gen_mo99_tc99m_actdyn_data {
             );
         }
     }
-    
+
     #
     # Date section
     #
-    
+
     #
     # (i) Activity and specific activity of Mo-99
     #     as functions of electron beam energy
@@ -4463,7 +4468,7 @@ sub gen_mo99_tc99m_actdyn_data {
         # Col 3: Mo-99 activity
         # Col 4: Mo mass
         # Col 5: Mo-99 specific activity
-        
+
         $k = 0;
         @{$gp->col->header} = ();
         $gp->col->header->[$k++] = $gp->cmt_border->dash;
@@ -4500,7 +4505,7 @@ sub gen_mo99_tc99m_actdyn_data {
             $curr->symb,
         );
         $gp->col->header->[$k] = $gp->col->header->[0];
-        
+
         lengthen_cmt_border(
             $gp,
             [0, 1, 2, $k],
@@ -4508,7 +4513,7 @@ sub gen_mo99_tc99m_actdyn_data {
             $gp->cmt_symb,
             $symb->dash,
         );
-        
+
         for (my $i=0; $i<=$k; $i++) {
             if ($i == 1) {
                 calc_alignment_symb_len(
@@ -4542,7 +4547,7 @@ sub gen_mo99_tc99m_actdyn_data {
             print $gp_dat1_fh $gp->col->header->[$i];
             print $gp_dat1_fh "\n" if ($i =~ /\b[0-2]|$k\b/ or $i == $k - 1);
         }
-        
+
         # Data columns
         # Col 1: Electron beam energy
         # Col 2: Irradiation time
@@ -4582,12 +4587,12 @@ sub gen_mo99_tc99m_actdyn_data {
                 3 => '6',
                 # Exclude the last item.
             );
-            
+
             # Append column data separators.
             # Skip the last element of @{$gp->col->content}, however,
             # "not to" (by the -1 of '$#{$gp->col->content} - 1' in
             # the loop conditional) feed appending spaces to the last column.
-            
+
             # Case 1
             # > Space as the data sep
             # > Append calculated numbers of spaces for ragged-right alignment.
@@ -4605,7 +4610,7 @@ sub gen_mo99_tc99m_actdyn_data {
                         ($gp->col->content_sep x $alignment->symb->len);
                 }
             }
-            
+
             # Case 2
             # > Comma or tab as the data sep
             # > Append only one separator
@@ -4617,29 +4622,29 @@ sub gen_mo99_tc99m_actdyn_data {
                     $gp->col->content->[$i] .= $gp->col->content_sep;
                 }
             }
-            
+
             # Write the aligned columnar data (one row at a time).
-            for (my $i=0; $i<=$k; $i++) { 
+            for (my $i=0; $i<=$k; $i++) {
                 print $gp_dat1_fh $gp->col->content->[$i];
             }
             print $gp_dat1_fh "\n";
         }
-        
+
         # Move on to the next gnuplot data index.
         $gp->idx->block($gp->idx->block + 1);
-        
+
         # Feed one blank line indicating the end of a gnuplot data block,
         # and mark the end of the gnuplot data file.
         print $gp_dat1_fh $_nrg != $actdyn->nrgs_of_int->[-1] ?
                 $gp->end_of->block : $gp->end_of->file;
     }
     close $gp_dat1_fh;
-    
+
     #
     # (ii) Activity and specific activity of Mo-99
     #      as functions of electron beam energy and irradiation time
     #
-    
+
     $gp->idx->dataset(0);
     foreach my $teoi (@{$mo99_act_nrg->tirrs_of_int}) {
         # Data block header
@@ -4686,7 +4691,7 @@ sub gen_mo99_tc99m_actdyn_data {
             $gp->cmt_symb,
             $symb->dash,
         );
-        
+
         for (my $i=0; $i<=$k; $i++) {
             if ($i == 1) {
                 calc_alignment_symb_len(
@@ -4714,11 +4719,11 @@ sub gen_mo99_tc99m_actdyn_data {
                         $gp->col->content_sep :
                         $gp->col->header_sep;
             }
-            
+
             print $gp_dat2_fh $gp->col->header->[$i];
             print $gp_dat2_fh "\n" if ($i =~ /\b[0-2]|$k\b/ or $i == $k -1);
         }
-        
+
         # Data columns
         # Col 1: Electron beam energy
         # Col 2: Mo-99 activity
@@ -4746,7 +4751,7 @@ sub gen_mo99_tc99m_actdyn_data {
                 1 => '4',
                 2 => '5',
             );
-            
+
             if ($gp->col->content_sep eq $symb->space) {
                 for (my $i=0; $i<=($k - 1); $i++) {
                     calc_alignment_symb_len(
@@ -4761,7 +4766,7 @@ sub gen_mo99_tc99m_actdyn_data {
                         ($gp->col->content_sep x $alignment->symb->len);
                 }
             }
-            
+
             elsif (
                 $gp->col->content_sep eq $symb->comma
                 or $gp->col->content_sep eq $symb->tab
@@ -4770,24 +4775,24 @@ sub gen_mo99_tc99m_actdyn_data {
                     $gp->col->content->[$i] .= $gp->col->content_sep;
                 }
             }
-            
-            for (my $i=0; $i<=$k; $i++) { 
+
+            for (my $i=0; $i<=$k; $i++) {
                 print $gp_dat2_fh $gp->col->content->[$i];
             }
             print $gp_dat2_fh "\n";
         }
-        
+
         $gp->idx->dataset($gp->idx->dataset + 1);
-        
+
         print $gp_dat2_fh $teoi != $mo99_act_nrg->tirrs_of_int->[-1] ?
             $gp->end_of->dataset : $gp->end_of->file;
     }
     close $gp_dat2_fh;
-    
+
     #
     # (iii) Mo-99 and Tc-99m activity dynamics
     #
-    
+
     # Data block header
     # Col 1:  Data row index
     # Col 2:  Time elapsed
@@ -4885,7 +4890,7 @@ sub gen_mo99_tc99m_actdyn_data {
         $gp->cmt_symb,
         $symb->dash,
     );
-    
+
     for (my $i=0; $i<=$k; $i++) {
         if ($i == 1) {
             calc_alignment_symb_len(
@@ -4913,10 +4918,10 @@ sub gen_mo99_tc99m_actdyn_data {
                     $gp->col->content_sep :
                     $gp->col->header_sep;
         }
-        
+
         print $gp_dat3_fh $gp->col->header->[$i];
         print $gp_dat3_fh "\n" if ($i =~ /\b(?:[0-2]|$k)\b/ or $i == ($k - 1));
-        
+
         # v Spreadsheet-only
         # Delimiter lines
         if ($i =~ /\b[0-2]\b/ or $i == $k) {
@@ -4937,7 +4942,7 @@ sub gen_mo99_tc99m_actdyn_data {
             $col = 0 if $i == $k - 1; # Initialize col num
         }
     }
-    
+
     # Data columns
     # Col 1:  Data row index
     # Col 2:  Time elapsed
@@ -5028,14 +5033,14 @@ sub gen_mo99_tc99m_actdyn_data {
                 "%s",
                 $mark_time_frame_of->eop,
             );
-            
+
             # Apply the operating average beam current of the linac.
             for (my $i=2; $i<=$k; $i++) {
                 unless ($i == 3 or $i == 7 or $i == 13) {
                     $gp->col->content->[$i] *= $linac->op_avg_beam_curr;
                 }
             }
-            
+
             %{$gp->col->content_to_header} = ();
             %{$gp->col->content_to_header} = (
                 0  => '3',
@@ -5074,7 +5079,7 @@ sub gen_mo99_tc99m_actdyn_data {
                     $gp->col->content->[$i] .= $gp->col->content_sep;
                 }
             }
-            for (my $i=0; $i<=$k; $i++) { 
+            for (my $i=0; $i<=$k; $i++) {
                 print $gp_dat3_fh $gp->col->content->[$i];
                 $mo99_tc99m_actdyn_ws->write( $i == $#{$gp->col->content} ?
                     ($row, $col++, $gp->col->content->[$i], $cell_form_emph) :
@@ -5083,11 +5088,11 @@ sub gen_mo99_tc99m_actdyn_data {
             }
             $row++; # Spreadsheet
             print $gp_dat3_fh "\n";
-            
+
             # Move on to the next data row (not an "index")
             $gp->idx->row($gp->idx->row + 1);
         }
-        
+
         # At Tc-99m elutions: Additional data rows for Tc-99m elution activities
         if (
             # e.g. $t >= 96
@@ -5208,7 +5213,7 @@ sub gen_mo99_tc99m_actdyn_data {
                     $gp->col->content->[$i] .= $gp->col->content_sep;
                 }
             }
-            for (my $i=0; $i<=$#{$gp->col->content}; $i++) { 
+            for (my $i=0; $i<=$#{$gp->col->content}; $i++) {
                 print $gp_dat3_fh $gp->col->content->[$i];
                 $mo99_tc99m_actdyn_ws->write( $i == $#{$gp->col->content} ?
                     ($row, $col++, $gp->col->content->[$i], $cell_form_emph) :
@@ -5217,14 +5222,14 @@ sub gen_mo99_tc99m_actdyn_data {
             }
             $row++; # Spreadsheet
             print $gp_dat3_fh "\n";
-            
+
             # Move on to the next data row (not an "index")
             $gp->idx->row($gp->idx->row + 1);
-            
+
             # Increment the elution count for writing
             $elu_count++;
         }
-        
+
         #
         # Those "except" at the EOP
         #
@@ -5335,7 +5340,7 @@ sub gen_mo99_tc99m_actdyn_data {
                 $gp->col->content->[$i] .= $gp->col->content_sep;
             }
         }
-        for (my $i=0; $i<=$#{$gp->col->content}; $i++) { 
+        for (my $i=0; $i<=$#{$gp->col->content}; $i++) {
             print $gp_dat3_fh $gp->col->content->[$i];
             $mo99_tc99m_actdyn_ws->write(
                 (
@@ -5347,19 +5352,19 @@ sub gen_mo99_tc99m_actdyn_data {
         }
         $row++; # Spreadsheet
         print $gp_dat3_fh "\n";
-        
+
         # Move on to the next data row (not an "index")
         $gp->idx->row($gp->idx->row + 1);
-        
+
         #
         # Total activity of Tc-99m eluates
         #
         $col = 0;
-        
+
         # Calculate the indentation width and construct a conversion
         # wrto that indentation
         my($len, $len_conv);
-        
+
         if ($gp->col->content_sep eq $symb->space) {
             $len =
                 $gp->col->header_border_len
@@ -5387,7 +5392,7 @@ sub gen_mo99_tc99m_actdyn_data {
         # of the Tc-99m eluates.
         $lab .= $tc99m_gen->elu_ord_from == 1 ?
             ' included): ' : ' excluded): ';
-        
+
         # Write the total activity of Tc-99m eluates with the label
         if ($t == $t_tot->to) {
             printf $gp_dat3_fh
@@ -5413,7 +5418,7 @@ sub gen_mo99_tc99m_actdyn_data {
                 $cell_form_dflt
             );
         }
-        
+
         # Mark the end of the gnuplot input data file.
         if ($t == $t_tot->to) {
             print $gp_dat3_fh $gp->end_of->file ;
@@ -5424,7 +5429,7 @@ sub gen_mo99_tc99m_actdyn_data {
     }
     close $gp_dat3_fh;
     $mo99_tc99m_actdyn_wb->close();
-    
+
     # Notification - ending
     say $disp->border->dash;
     pause_terminal() if $routine->is_verbose;
@@ -5434,7 +5439,7 @@ sub gen_mo99_tc99m_actdyn_data {
         $mo99_tc99m_actdyn->gp->dat,
         $mo99_tc99m_actdyn->excel->xlsx,
     );
-    
+
     return;
 }
 
@@ -5442,31 +5447,31 @@ sub gen_mo99_tc99m_actdyn_data {
 sub calc_num_of_required_linacs {
     # """Calculate the number of linacs necessary to meet the Tc-99m demand
     # of the countries of interest."""
-    
+
     # Two 72-hour long production runs can be performed per week
     $linac->tc99m_supply->weekly(
         $tc99m->act->elu_tot_arr->[$linac->op_nrg]
         * $linac->op_avg_beam_curr
         * 2
     );
-    
+
     foreach my $k (sort keys %{$country->list}) {
         # Redirection
         my $nation = $country->list->{$k}{obj};
         next if not $nation->tc99m_demand_num->weekly;
-        
+
         # Tc-99m demand per week
         $nation->tc99m_demand_act->weekly(
             $nation->tc99m_demand_num->weekly
             * $tc99m->avg_dose
         );
-        
+
         # Tc-99m supply per week
         $nation->req_num_linacs(
             $nation->tc99m_demand_act->weekly
             / $linac->tc99m_supply->weekly
         );
-        
+
         # Reporting
         my $rpt_fname = sprintf(
             "%s%s.dat",
@@ -5511,14 +5516,14 @@ sub calc_num_of_required_linacs {
         close $rpt_fh;
         notify_file_gen($rpt_fname);
     };
-    
+
     return;
 }
 
 
 sub populate_attrs {
     # """Populate object attributes."""
-    
+
     #
     # 'symbol' object
     #
@@ -5556,7 +5561,7 @@ sub populate_attrs {
     $symb->question('?');
     $symb->space(' ');
     $symb->tab("\t"); # Use double quotes to use \t
-    
+
     #
     # 'display' object
     #
@@ -5568,18 +5573,18 @@ sub populate_attrs {
     $disp->border->plus($symb->plus x $disp->border->len);
     $disp->border->equals($symb->equals x $disp->border->len);
     $disp->border->warning($disp->border->plus);
-    
+
     #
     # 'alignment' object
     #
     $alignment->symb->bef($symb->space);
     $alignment->symb->aft($symb->space);
-    
+
     #
     # 'default' object
     #
     $dflt->mark('present');
-    
+
     #
     # 'metric_pref' objects
     #
@@ -5652,7 +5657,7 @@ sub populate_attrs {
         'hr_per_min'   => $hr_per_min,
         'hr_per_sec'   => $hr_per_sec,
     );
-    
+
     #
     # 'unit' objects
     #
@@ -5791,7 +5796,7 @@ sub populate_attrs {
         $time->power_of_10('hr_per_sec');
     }
     $time->factor($metric_pref->list->{$time->power_of_10}->factor);
-    
+
     #
     # 'time_frame' objects
     # > Time frames expressed in "hour" are used for calculations and,
@@ -5805,13 +5810,13 @@ sub populate_attrs {
     $t_tot->to(400); # Hour
     $t_irr->from(0);
     $t_irr->to(72); # == end of irradiation
-    
+
     #
     # 'math_constant' object
     #
     $const->avogadro(6.02214e+23); # Num substance/mol
     $const->coulomb(6.2415e+18);   # Num electrons/coulomb
-    
+
     #
     # 'geometry' object
     #
@@ -5819,11 +5824,11 @@ sub populate_attrs {
         0 => 'Right circular cylinder',
         1 => 'Conical frustum (aka truncated cone)',
     );
-    
+
     #
     # 'nuclide' objects
     #
-    
+
     # Z=8: O
     %{$o->nat_occ_isots} = (
         o16 => $o16,
@@ -5855,7 +5860,7 @@ sub populate_attrs {
         'amt_frac',
         'quiet',
     );
-    
+
     # Z=42: Mo
     %{$mo->nat_occ_isots} = (
         mo92  => $mo92,
@@ -5906,7 +5911,7 @@ sub populate_attrs {
         'amt_frac',
         'quiet',
     );
-    
+
     # It is the decay constant that cancels out with a time quantity
     # expressed in hour and, as such, the decay constant must also be the
     # one expressed in hour. The decay constant below is therefore defined
@@ -5920,7 +5925,7 @@ sub populate_attrs {
     $mo99->negatron_dec_2->negatron_line_1(1.214);
     $mo99->negatron_dec_2->gamma_line_1(0.778);
     $mo99->negatron_dec_2->branching_fraction(0.875);
-    
+
     # Z=43: Tc
     %{$tc->nat_occ_isots} = (
         tc99  => $tc99,
@@ -5946,7 +5951,7 @@ sub populate_attrs {
     $tc99m->dec_const(log(2) / $tc99m->half_life_phy);
     $tc99m->gamma_dec1->gamma_line_1(0.1405);
     $tc99m->gamma_dec1->branching_fraction(0.890);
-    
+
     # Z=74: W
     %{$w->nat_occ_isots} = (
         w180 => $w180,
@@ -5986,7 +5991,7 @@ sub populate_attrs {
         'amt_frac',
         'quiet',
     );
-    
+
     # Targetry (1/2) Converter
     $converter->name('converter target');
     $converter->molar_mass($w->wgt_avg_molar_mass);
@@ -5998,7 +6003,7 @@ sub populate_attrs {
     $converter->melt_point(3695.15);
     $converter->boil_point(6203.15);
     calc_vol_and_mass($converter);
-    
+
     # Targetry (2/2) Mo target
     $mo_tar->name('molybdenum target');
     $mo_tar->geom->shape(1);     # 0:RCC, 1:TRC
@@ -6025,7 +6030,7 @@ sub populate_attrs {
     $mo_diox->symb('MoO2');
     $mo_triox->name('molybdenum trioxide');
     $mo_triox->symb('MoO3');
-    
+
     #
     # 'mc_sim' object
     #
@@ -6037,13 +6042,13 @@ sub populate_attrs {
     $phits->ext->inp('inp');
     $phits->ext->out('out');
     $phits->ext->ang('ang');
-    
+
     #
     # 'cross_section' object
     #
     $xs->inp('./xs/xs_mogn.dat');
     $xs->is_chk(1);
-    
+
     #
     # 'gnuplot' objects
     #
@@ -6075,7 +6080,7 @@ sub populate_attrs {
     $mark_time_frame_of->eop($prepender.'End of Mo taget processing');
     $mark_time_frame_of->eod('End of Tc-99m generator delivery');
     $mark_time_frame_of->elu($prepender.'Tc-99m elution');
-    
+
     #
     # 'comma_separated_values' object
     #
@@ -6084,20 +6089,20 @@ sub populate_attrs {
     $csv->quoted('') if not $csv->is_quoted;
     $csv->quoted($symb->double_quote) if $csv->is_quoted;
     $csv->ext('csv');
-    
+
     #
     # 'ms_excel' object
     #
     $excel->ext->xls('xls');
     $excel->ext->xlsx('xlsx');
-    
+
     #
     # 'linac' object
     #
     $linac->name('Electron linear accelerator');
     $linac->op_nrg(35);            # MeV
     $linac->op_avg_beam_curr(260); # uA
-    
+
     #
     # 'chemical_processing' object
     #
@@ -6109,7 +6114,7 @@ sub populate_attrs {
     $chem_proc->time_required->to(12);
     $chem_proc->mo99_loss_ratio_at_eop(0.2);
     $chem_proc->tc99m_loss_ratio_at_eop($chem_proc->mo99_loss_ratio_at_eop);
-    
+
     #
     # 'tc99m_generator' object
     #
@@ -6127,7 +6132,7 @@ sub populate_attrs {
     $tc99m_gen->elu_eff(0.7);
     $tc99m_gen->elu_itv(24);
     $tc99m_gen->shelf_life(240);
-    
+
     #
     # 'actdyn' objects
     #
@@ -6138,10 +6143,10 @@ sub populate_attrs {
     @{$actdyn->nrgs_of_int} = (20..70); # MeV
     $actdyn->pwm->is_chk(1);
     $actdyn->pwm->is_show_gross(0);
-    
+
     $mo99_act_nrg_tirr->is_calc_disp(1);
     @{$mo99_act_nrg->tirrs_of_int} = (50, 72, 100, 200, 300, 400);
-    
+
     #
     # 'country' object
     #
@@ -6155,13 +6160,13 @@ sub populate_attrs {
     $jpn->tc99m_demand_num->yearly(1e6);
     $usa->tc99m_demand_num->yearly();
     $eur->tc99m_demand_num->yearly();
-    
+
     foreach my $k (sort keys %{$country->list}) {
         # Redirection
         my $nation = $country->list->{$k}{obj};
         $nation->name($country->list->{$k}{name});
         next if not $nation->tc99m_demand_num->yearly;
-        
+
         # Tc-99m demand in number of procedures
         # per month, per week, and per day
         $nation->tc99m_demand_num->monthly(
@@ -6177,20 +6182,20 @@ sub populate_attrs {
             / 7
         );
     };
-    
+
     return;
 }
 
 
 sub actdyn_preproc {
     # """actdyn preprocessor"""
-    
+
     my $run_opts_href = shift;
-    
+
     # Populate the object attributes, some of which are overwritable
     # in overwrite_param() placed at the bottom of the current routine.
     populate_attrs();
-    
+
     # Chosen units
     my %units = (
         nrg => {
@@ -6266,7 +6271,7 @@ sub actdyn_preproc {
     push @names, $units{$_}{name} for keys %units;
     my @lengthiest = sort { length $b <=> length $a } @names;
     my $conv = '%-'.(length $lengthiest[0]).'s';
-    
+
     say $disp->border->dash;
     foreach my $k (sort keys %units) {
         printf(
@@ -6277,7 +6282,7 @@ sub actdyn_preproc {
         );
     }
     say $disp->border->dash;
-    
+
     # Parameter selection
     printf("%sDefault parameters have been set.\n", $disp->indent)
         if $run_opts_href->{is_dflt};
@@ -6288,46 +6293,46 @@ sub actdyn_preproc {
         $actdyn,
     );
     $gp->col->content_sep($gp->col->content_sep_opt->{$gp->col->content_sep});
-    
+
     # Fix some time frames after the parameter overwriting.
     fix_time_frames();
     fix_max_ord_of_tc99m_elution();
-    
+
     return;
 }
 
 
 sub actdyn_main {
     # """actdyn main routine"""
-    
+
     # Mo-99/Tc-99m activity dynamics calculation
     calc_mo100_num_dens();
     calc_mo99_tc99m_actdyn_data();
-    
+
     return;
 }
 
 
 sub actdyn_postproc {
     # """actdyn postprocessor"""
-    
+
     my $prog_info_href = shift;
-    
+
     # Convert the units of calculated quantities;
     # e.g. Bq --> GBq, g m^-3 --> g cm^-3
     convert_units();
-    
+
     # Write the calculation results to data files.
     gen_mo99_tc99m_actdyn_data($prog_info_href);
     calc_num_of_required_linacs(); # Reporting file
-    
+
     return;
 }
 
 
 sub actdyn_runner {
     # """actdyn running routine"""
-    
+
     if (@ARGV) {
         my %prog_info = (
             titl       => basename($0, '.pl'),
@@ -6337,8 +6342,8 @@ sub actdyn_runner {
             date_first => $FIRST,
             auth       => {
                 name => 'Jaewoong Jang',
-                posi => 'PhD student',
-                affi => 'University of Tokyo',
+#                posi => '',
+#                affi => '',
                 mail => 'jangj@korea.ac.kr',
             },
         );
@@ -6356,30 +6361,30 @@ sub actdyn_runner {
             is_verbose => 0,
             is_nopause => 0,
         );
-        
+
         # ARGV validation and parsing
         validate_argv(\@ARGV, \%cmd_opts) if @ARGV;
         parse_argv(\@ARGV, \%cmd_opts, \%run_opts) if @ARGV;
-        
+
         # Notification - beginning
         show_front_matter(\%prog_info, 'prog', 'auth', 'no_trailing_blkline')
             unless $run_opts{is_nofm};
-        
+
         # actdyn routines
         if ($run_opts{is_inter} or $run_opts{is_dflt}) {
             actdyn_preproc(\%run_opts);
             actdyn_main();
             actdyn_postproc(\%prog_info) if $actdyn->is_run;
         }
-        
+
         # Notification - end
         show_elapsed_real_time("\n");
         pause_terminal("Press enter to exit...")
             unless $run_opts{is_nopause};
     }
-    
+
     system("perldoc \"$0\"") if not @ARGV;
-    
+
     return;
 }
 
