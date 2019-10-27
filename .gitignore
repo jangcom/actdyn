@@ -1,0 +1,32 @@
+# github archive
+github/
+
+# actdyn records
+bak_LOG/
+bak_actdyn.pl/
+actdyn_baker.bat
+updates.txt
+removed.txt
+
+# actdyn aux files
+figs/
+notes/
+olds/
+phits_np1e7/
+refs/
+results/
+utils/
+deployer_to_phd_diss_code.bat
+
+# lcounter
+lcounter.bat
+lcounter_result.txt
+
+# MSWin link files
+*.lnk
+
+# POD-related
+actdyn_usage.bat
+actdyn.html
+pod2htmd.tmp
+actdyn_pod2html.bat
