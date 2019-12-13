@@ -1,26 +1,19 @@
-# github archive
-github/
-
 # actdyn records
-bak_LOG/
 bak_actdyn.pl/
 actdyn_baker.bat
+
+# Updates
 updates.txt
 removed.txt
 
 # actdyn aux and result files
 figs/
-notes/
-olds/
 phits_np1e7/
-refs/
 results/
-utils/
-deployer_to_phd_diss_code.bat
 
 # lcounter
-lcounter.bat
-lcounter_result.txt
+lines_counted/
+actdyn_lcounter.bat
 
 # MSWin link files
 *.lnk
