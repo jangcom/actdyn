@@ -1,25 +1,13 @@
 # actdyn records
-bak_actdyn.pl/
-actdyn_baker.bat
-
-# Updates
-updates.txt
-removed.txt
+bak_*
+*_baker.bat
 
 # actdyn aux and result files
-figs/
+docs/figs/
+docs/updates.txt
+docs/removed.txt
 phits_np1e7/
 results/
 
-# lcounter
-lines_counted/
-actdyn_lcounter.bat
-
 # MSWin link files
 *.lnk
-
-# POD-related
-actdyn_usage.bat
-actdyn.html
-pod2htmd.tmp
-actdyn_pod2html.bat

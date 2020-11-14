@@ -1,0 +1,21 @@
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+lcounter - Count the numbers of lines of text files
+lcounter v1.03 (2019-10-27)
+Perl v5.30.1
+
+Jaewoong Jang
+jangj@korea.ac.kr
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Counted at [2020-11-14 14:34:07]
+Comment symbol: [#]
+
+File [../actdyn.pl]
+Number of comment lines: 961
+Number of blank lines:   614
+Number of plain lines:   4905
+
+Total numbers of lines
+Number of comment lines: 961
+Number of blank lines:   614
+Number of plain lines:   4905

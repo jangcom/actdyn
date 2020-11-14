@@ -16,8 +16,8 @@ use constant ARRAY => ref [];
 use constant HASH  => ref {};
 
 
-our $VERSION = '2.32';
-our $LAST    = '2019-10-27';
+our $VERSION = '2.31';
+our $LAST    = '2020-11-14';
 our $FIRST   = '2016-12-15';
 
 
@@ -6348,8 +6348,8 @@ sub actdyn_runner {
             },
         );
         my %cmd_opts = ( # Command-line opts
-            inter   => qr/-?-i\b/i,
-            dflt    => qr/-?-d\b/i,
+            inter   => qr/-i\b/i,
+            dflt    => qr/-d\b/i,
             nofm    => qr/-?-nofm\b/i,
             verbose => qr/-?-verb(?:ose)?\b/i,
             nopause => qr/-?-nopause\b/i,
@@ -6399,7 +6399,7 @@ actdyn - A Mo-99/Tc-99m activity dynamics simulator
 
 =head1 SYNOPSIS
 
-    perl actdyn.pl [-i|-d] [-nofm] [-verbose] [-nopause]
+    perl actdyn.pl [-i|-d] [--nofm] [--verbose] [--nopause]
 
 =head1 DESCRIPTION
 
@@ -6430,20 +6430,20 @@ actdyn - A Mo-99/Tc-99m activity dynamics simulator
     -d
         Run on the default mode.
 
-    -nofm
+    --nofm
         The front matter will not be displayed at the beginning of the program.
 
-    -verbose (short form: -verb)
+    --verbose (short form: --verb)
         Calculation processes will be displayed.
 
-    -nopause
+    --nopause
         The shell will not be paused at the end of the program.
         Use it for a batch run.
 
 =head1 EXAMPLES
 
-    perl actdyn.pl -d -nopause
-    perl actdyn.pl -verbose
+    perl actdyn.pl -d --nopause
+    perl actdyn.pl --verbose
 
 =head1 REQUIREMENTS
 
@@ -6462,7 +6462,7 @@ actdyn - A Mo-99/Tc-99m activity dynamics simulator
 
 L<actdyn on GitHub|https://github.com/jangcom/actdyn>
 
-L<actdyn-generated data in a paper: I<Phys. Rev. Accel. Beams> B<20>, 104701 (Figs. 4, 5, 12, and 13)|https://link.aps.org/doi/10.1103/PhysRevAccelBeams.20.104701>
+L<actdyn-generated data in a paper: I<Phys. Rev. Accel. Beams> B<20> (2017) 104701 (Figs. 4, 5, 12, and 13)|https://doi.org/10.1103/PhysRevAccelBeams.20.104701>
 
 =head1 AUTHOR
 
@@ -6470,7 +6470,7 @@ Jaewoong Jang <jangj@korea.ac.kr>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2016-2019 Jaewoong Jang
+Copyright (c) 2016-2020 Jaewoong Jang
 
 =head1 LICENSE
 
