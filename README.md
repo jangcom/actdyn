@@ -1,3 +1,8 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3229181.svg)](https://doi.org/10.5281/zenodo.3229181)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-https%3A%2F%2Fjangcom.github.io%2Factdyn-brightgreen)](https://jangcom.github.io/actdyn/)
+
+---
+
 # NAME
 
 actdyn - A Mo-99/Tc-99m activity dynamics simulator
